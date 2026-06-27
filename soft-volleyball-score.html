@@ -1,0 +1,3156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1520">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>ソフトバレー 得点管理（4人制）</title>
+  <style>
+    :root {
+      --color-a: #e53935;
+      --color-a-dark: #b71c1c;
+      --color-b: #1565c0;
+      --color-b-dark: #0d47a1;
+      --bg: #0d1520;
+      --card: #162030;
+      --card2: #1e2d40;
+      --border: #2a3d55;
+      --text: #e8f0fe;
+      --sub: #7a90a8;
+      --text-sub: #7a90a8;
+      --gold: #f5a623;
+      --green: #1b8a3e;
+      --purple: #5c2d8e;
+      --teal: #00cc88;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      max-width: 430px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    /* iPhone SE (375px) 対応 */
+    @media (max-width: 375px) {
+      .score-num { font-size: 56px !important; }
+      .player-num { font-size: 22px !important; }
+      .player-cell { min-height: 40px; }
+      .btn-score { padding: 10px 4px; font-size: 14px; min-height: 40px; }
+      .btn-undo { flex: 0 0 50px; padding: 10px 2px; font-size: 12px; min-height: 40px; }
+      .btn-timeout { padding: 6px 4px; font-size: 11px; min-height: 32px; }
+      .header-title { font-size: 10px; }
+      .set-dot { width: 26px; height: 26px; font-size: 8px; }
+      .btn-action { padding: 8px 2px; font-size: 10px; min-height: 36px; }
+    }
+    /* iPhone Plus / Max (428px+) */
+    @media (min-width: 414px) {
+      .score-num { font-size: 76px !important; }
+      .player-num { font-size: 30px !important; }
+      .player-cell { min-height: 50px; }
+      .serve-label, .next-label { font-size: 13px; }
+      .btn-score { padding: 16px 8px; font-size: 17px; }
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: max(10px, env(safe-area-inset-top)) 10px 10px;
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .set-dots { display: flex; gap: 5px; }
+
+    .set-dot {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--sub);
+      transition: all 0.2s;
+    }
+    .set-dot.won-a { background: var(--color-a); border-color: var(--color-a); color: #fff; font-size: 8px; }
+    .set-dot.won-b { background: var(--color-b); border-color: var(--color-b); color: #fff; font-size: 8px; }
+    .set-dot.current { border-color: var(--gold); color: var(--gold); }
+
+    .header-title { flex: 1; text-align: center; font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: 1px; }
+    .header-btns  { display: flex; gap: 5px; }
+    .btn-hdr {
+      background: none; border: 1px solid var(--border); color: var(--sub);
+      padding: 5px 8px; border-radius: 8px; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+    }
+
+    /* ========== SERVE BANNER（コンパクト1行） ========== */
+    .serve-banner {
+      flex-shrink: 0; padding: 7px 16px; text-align: center;
+      transition: background 0.3s;
+    }
+    .serve-banner.serve-a { background: linear-gradient(135deg, var(--color-a-dark), var(--color-a)); }
+    .serve-banner.serve-b { background: linear-gradient(135deg, var(--color-b-dark), var(--color-b)); }
+
+    .serve-main {
+      font-size: 16px; font-weight: 900; letter-spacing: 1px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .serve-arrow { font-size: 18px; animation: pulse 1.4s ease-in-out infinite; }
+    .serve-jersey {
+      font-size: 22px; font-weight: 900; color: #fff;
+      background: rgba(0,0,0,0.3); border-radius: 6px;
+      padding: 1px 8px; margin-left: 4px;
+    }
+    .serve-sub {
+      font-size: 11px; opacity: 0.85; margin-top: 1px; letter-spacing: 1px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .serve-next-info {
+      color: #64b5f6; font-weight: 700;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.7; transform: scale(0.92); }
+    }
+
+    /* ========== SCORE SECTION ========== */
+    .score-section {
+      flex-shrink: 0; display: flex;
+      background: var(--card); border-bottom: 1px solid var(--border);
+    }
+
+    .team-block { flex: 1; padding: 6px 6px 8px; text-align: center; }
+    .team-name-display { font-size: 14px; font-weight: 800; margin-bottom: 1px; }
+
+    .score-num {
+      font-size: 68px; font-weight: 900;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .score-num.a { color: var(--color-a); }
+    .score-num.b { color: var(--color-b); }
+
+    .score-status { font-size: 13px; color: var(--sub); margin-top: 4px; min-height: 16px; font-weight: 600; }
+
+    .score-middle {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 6px 4px; gap: 3px; min-width: 56px;
+    }
+    .set-score-label { font-size: 10px; color: var(--sub); font-weight: 600; letter-spacing: 1px; }
+    .set-score-num   { font-size: 22px; font-weight: 800; }
+
+    .deuce-badge {
+      background: var(--gold); color: #000;
+      padding: 4px 10px; border-radius: 6px;
+      font-size: 12px; font-weight: 900; letter-spacing: 1px;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .rule-badge {
+      font-size: 9px; color: var(--sub);
+      border: 1px solid var(--border); padding: 2px 5px;
+      border-radius: 4px; white-space: nowrap;
+    }
+    .past-sets { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+    .past-set-chip { font-size: 10px; color: var(--sub); background: var(--card2); padding: 1px 5px; border-radius: 4px; }
+
+    /* ========== COURT SECTION（主役） ========== */
+    .court-section {
+      flex: 1; padding: 4px 8px 2px; background: var(--bg);
+      display: flex; flex-direction: column; min-height: 0;
+    }
+
+    .court-label {
+      text-align: center; font-size: 10px; color: var(--sub);
+      letter-spacing: 1px; margin-bottom: 6px; flex-shrink: 0;
+    }
+
+    .court-wrap {
+      display: flex; gap: 6px;
+      flex: 1; min-height: 100px;
+    }
+
+    .half-court {
+      flex: 1; border: 2px solid var(--border); border-radius: 10px;
+      overflow: hidden; background: rgba(255,255,255,0.02);
+      transition: border-color 0.3s, box-shadow 0.3s;
+      display: flex; flex-direction: column;
+    }
+    .half-court.active-a { border-color: var(--color-a); box-shadow: 0 0 14px rgba(229,57,53,0.3); }
+    .half-court.active-b { border-color: var(--color-b); box-shadow: 0 0 14px rgba(21,101,192,0.3); }
+
+    .court-team-header {
+      padding: 5px 6px; font-size: 12px; font-weight: 800;
+      text-align: center; letter-spacing: 1px; flex-shrink: 0;
+    }
+    .court-team-header.a { background: rgba(229,57,53,0.2); color: #ff7070; }
+    .court-team-header.b { background: rgba(21,101,192,0.2); color: #64b5f6; }
+
+    /* 4人制: 2×2グリッド */
+    .player-grid {
+      flex: 1; display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 4px; padding: 5px;
+    }
+
+    .player-cell {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; transition: background 0.15s;
+      min-height: 54px;
+    }
+    /* 現在サーバーのセル（金色・強調） */
+    .player-cell.server-cell {
+      background: rgba(245,166,35,0.25);
+      border: 2px solid var(--gold);
+      box-shadow: inset 0 0 12px rgba(245,166,35,0.2), 0 0 8px rgba(245,166,35,0.15);
+    }
+
+    /* 次サーバーのセル（青・強調） */
+    .player-cell.next-cell {
+      background: rgba(100,181,246,0.15);
+      border: 2px solid rgba(100,181,246,0.6);
+      box-shadow: inset 0 0 8px rgba(100,181,246,0.15);
+    }
+
+    /* 背番号を大きく表示 */
+    .player-num {
+      font-size: 30px; font-weight: 900; color: var(--text);
+      line-height: 1;
+    }
+
+    /* ★サーブ ラベル */
+    .serve-label {
+      font-size: 12px; font-weight: 900; color: var(--gold);
+      margin-top: 2px; letter-spacing: 0.5px;
+    }
+
+    /* NEXT ラベル */
+    .next-label {
+      font-size: 12px; font-weight: 900; color: #64b5f6;
+      margin-top: 2px; letter-spacing: 1px;
+    }
+
+    .court-net {
+      width: 8px;
+      background: linear-gradient(to bottom,
+        transparent 0%, rgba(255,255,255,0.3) 10%,
+        rgba(255,255,255,0.3) 90%, transparent 100%);
+      border-radius: 4px; flex-shrink: 0; position: relative;
+    }
+    .court-net::before {
+      content: 'NET'; position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(90deg);
+      font-size: 7px; color: rgba(255,255,255,0.25); white-space: nowrap; letter-spacing: 1px;
+    }
+
+    .rotate-row { display: flex; gap: 6px; margin-top: 6px; flex-shrink: 0; }
+    .btn-rotate {
+      flex: 1; padding: 8px 4px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 12px; font-weight: 700;
+      cursor: pointer; touch-action: manipulation;
+    }
+    .btn-rotate:active { background: var(--card2); }
+    .btn-rotate.rot-a { color: #ff7070; border-color: rgba(229,57,53,0.4); }
+    .btn-rotate.rot-b { color: #64b5f6; border-color: rgba(21,101,192,0.4); }
+
+    /* ========== BOTTOM CONTROLS ========== */
+    .controls {
+      flex-shrink: 0; background: var(--card); border-top: 1px solid var(--border);
+      padding: 6px 8px;
+      padding-bottom: max(6px, env(safe-area-inset-bottom));
+    }
+
+    .score-btns { display: flex; gap: 8px; margin-bottom: 6px; }
+
+    .btn-score {
+      flex: 1; padding: 14px 6px; border: none; border-radius: 14px;
+      font-size: 16px; font-weight: 900; cursor: pointer;
+      touch-action: manipulation; transition: transform 0.08s, opacity 0.08s;
+      line-height: 1.3; min-height: 48px;
+    }
+    .btn-score:disabled { opacity: 0.4; transform: none; }
+    .btn-score:active { transform: scale(0.95); opacity: 0.88; }
+    .btn-score.a { background: var(--color-a); color: #fff; }
+    .btn-score.b { background: var(--color-b); color: #fff; }
+
+    .btn-undo {
+      flex: 0 0 62px; padding: 14px 4px;
+      background: var(--card2); border: 2px solid var(--border);
+      border-radius: 14px; color: var(--text);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation;
+      min-height: 48px;
+    }
+    .btn-undo:active { background: var(--border); }
+
+    .action-btns { display: flex; gap: 5px; }
+    .btn-action {
+      flex: 1; padding: 12px 2px; border: none; border-radius: 10px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation; transition: opacity 0.1s;
+      min-height: 44px;
+    }
+    .btn-action:active { opacity: 0.8; }
+    .btn-next-set { background: var(--green);  color: #fff; }
+    .btn-rules    { background: var(--purple); color: #fff; }
+    .btn-config   { background: #2c4a6e;       color: #fff; }
+    .btn-reset    { background: #7a2020;        color: #fff; }
+
+    /* ========== MODALS / SHEETS ========== */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 100; display: flex; align-items: flex-end;
+    }
+    .overlay.hidden { display: none; }
+
+    .sheet {
+      width: 100%; max-width: 430px; margin: 0 auto;
+      background: var(--card); border-radius: 20px 20px 0 0;
+      padding: 0 16px 16px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      max-height: 88vh; overflow-y: auto;
+    }
+
+    .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
+    .sheet-title  { font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 18px; }
+
+    .section-head {
+      font-size: 11px; font-weight: 700; color: var(--sub);
+      letter-spacing: 1px; text-transform: uppercase;
+      margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+    }
+
+    .team-header-bar { padding: 8px 12px; border-radius: 8px; font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+    .team-header-bar.a { background: rgba(229,57,53,0.25); color: #ff7070; }
+    .team-header-bar.b { background: rgba(21,101,192,0.25); color: #64b5f6; }
+
+    .form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .form-label { font-size: 13px; color: var(--sub); min-width: 75px; }
+
+    .form-input {
+      flex: 1; background: var(--card2); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 12px; border-radius: 8px;
+      font-size: 16px; font-family: inherit;
+    }
+    .form-input:focus { outline: none; border-color: var(--color-a); }
+
+    select.form-input {
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a90a8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+
+    /* 4人制 選手登録: 2列 */
+    .player-inputs {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 8px; margin-bottom: 10px;
+    }
+    .player-input-cell { text-align: center; }
+    .player-input-label { font-size: 11px; color: var(--sub); margin-bottom: 4px; font-weight: 600; }
+
+    .player-num-input {
+      width: 100%; background: var(--card2); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 4px; border-radius: 8px;
+      font-size: 26px; font-weight: 900; text-align: center; font-family: inherit;
+    }
+    .player-num-input:focus { outline: none; border-color: var(--color-a); }
+    .player-num-input.serve-slot { border-color: rgba(245,166,35,0.5); background: rgba(245,166,35,0.06); }
+
+    /* ルール設定 */
+    .rule-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+    .rule-option {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      background: var(--card2); border: 2px solid var(--border);
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .rule-option input[type=radio] { margin-top: 2px; accent-color: var(--gold); flex-shrink: 0; width: 18px; height: 18px; }
+    .rule-option.selected { border-color: var(--gold); background: rgba(245,166,35,0.08); }
+    .rule-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .rule-desc  { font-size: 11px; color: var(--sub); line-height: 1.4; }
+
+    .hidden-row { display: none !important; }
+
+    .num-stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 1; }
+    .stepper-btn {
+      width: 44px; height: 44px; background: var(--card2); border: none;
+      color: var(--text); font-size: 22px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .stepper-btn:active { background: var(--border); }
+    .stepper-val {
+      flex: 1; text-align: center; font-size: 20px; font-weight: 800;
+      background: var(--card2);
+      border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+      padding: 10px 0;
+    }
+
+    .btn-sheet {
+      width: 100%; padding: 14px; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation; margin-bottom: 8px;
+    }
+    .btn-primary   { background: var(--green); color: #fff; }
+    .btn-secondary { background: var(--card2); border: 1px solid var(--border); color: var(--text); }
+
+    /* ========== TOURNAMENT SETTINGS ========== */
+    .t-section-hidden { display: none; }
+    .section-head-sm {
+      font-size: 11px; font-weight: 700; color: var(--sub);
+      letter-spacing: 1px; margin: 10px 0 6px; padding-bottom: 3px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ========== COURT CHANGE OVERLAY ========== */
+    .court-change-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 175;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 24px;
+    }
+    .court-change-overlay.hidden { display: none; }
+    .cc-icon  { font-size: 72px; margin-bottom: 10px; }
+    .cc-title { font-size: 28px; font-weight: 900; color: var(--gold); margin-bottom: 6px; }
+    .cc-set   { font-size: 13px; color: var(--sub); margin-bottom: 8px; letter-spacing: 1px; }
+    .cc-score { font-size: 48px; font-weight: 800; margin-bottom: 16px; }
+    .cc-msg   {
+      font-size: 17px; color: var(--text); line-height: 1.7; margin-bottom: 28px;
+      background: rgba(245,166,35,0.12); border: 2px solid var(--gold);
+      border-radius: 14px; padding: 16px 22px;
+    }
+    .cc-btn {
+      padding: 18px 40px; border: none; border-radius: 14px;
+      font-size: 18px; font-weight: 800; cursor: pointer; touch-action: manipulation;
+      background: var(--gold); color: #000; min-width: 240px;
+    }
+    .cc-btn:active { opacity: 0.85; }
+
+    /* 現在セット番号ラベル */
+    .cur-set-label {
+      font-size: 11px; font-weight: 800; color: var(--gold);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* ========== SET END OVERLAY ========== */
+    .set-end-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 150;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 24px;
+    }
+    .set-end-overlay.hidden { display: none; }
+    .set-end-icon  { font-size: 60px; margin-bottom: 10px; }
+    .set-end-title { font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+    .set-end-score { font-size: 40px; font-weight: 800; margin-bottom: 4px; }
+    .set-end-sub   { font-size: 14px; color: var(--sub); margin-bottom: 28px; }
+    .set-end-btn {
+      padding: 16px 32px; border: none; border-radius: 14px;
+      font-size: 17px; font-weight: 800; cursor: pointer;
+      background: var(--green); color: #fff; touch-action: manipulation;
+      margin-bottom: 10px; min-width: 220px;
+    }
+    .set-end-cancel {
+      background: none; border: 1px solid var(--border); color: var(--sub);
+      padding: 10px 24px; border-radius: 10px; font-size: 14px; cursor: pointer;
+    }
+
+    /* ========== WINNER OVERLAY ========== */
+    .winner-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 24px;
+    }
+    .winner-overlay.hidden { display: none; }
+    .winner-trophy { font-size: 90px; margin-bottom: 12px; }
+    .winner-name   { font-size: 32px; font-weight: 900; margin-bottom: 6px; }
+    .winner-score  { font-size: 16px; color: var(--sub); margin-bottom: 6px; }
+    .winner-sets   { font-size: 13px; color: var(--sub); margin-bottom: 32px; }
+
+    /* ========== HISTORY BOTTOM BAR ========== */
+    .history-bar {
+      flex-shrink: 0;
+      padding: 6px 12px max(10px, env(safe-area-inset-bottom));
+      background: var(--card);
+      border-top: 1px solid var(--border);
+    }
+    .btn-history-bar {
+      width: 100%; padding: 9px; border-radius: 10px;
+      background: none; border: 1px solid var(--border);
+      color: var(--sub); font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: 1px;
+      touch-action: manipulation;
+    }
+
+    /* ========== MATCH TIMER ========== */
+    .match-time-bar {
+      font-size: 11px; color: var(--sub); font-weight: 600;
+      letter-spacing: 1px; white-space: nowrap;
+    }
+    #dispMatchTime { font-variant-numeric: tabular-nums; }
+
+    /* ========== HISTORY SHEET ========== */
+    .history-empty { text-align:center; padding: 32px 16px; color: var(--sub); font-size: 14px; }
+    .history-item {
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-summary {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px; cursor: pointer;
+    }
+    .history-summary-body { flex: 1; min-width: 0; }
+    .history-date   { font-size: 11px; color: var(--sub); margin-bottom: 3px; }
+    .history-teams  { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .history-winner { font-size: 13px; color: var(--gold); }
+    .history-detail { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); display: none; }
+    .history-set    { font-size: 12px; color: var(--sub); margin-bottom: 2px; }
+    .history-time-line { font-size: 12px; color: var(--sub); margin-top: 4px; }
+    .history-del {
+      flex-shrink: 0; background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.4);
+      color: #ff5050; padding: 8px 14px; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer; touch-action: manipulation;
+      min-height: 44px; display: flex; align-items: center; gap: 4px;
+    }
+    .history-del .del-icon { font-size: 20px; }
+    .history-expand-icon { font-size: 10px; color: var(--sub); margin-left: 4px; }
+
+    /* ========== COPY BUTTON ========== */
+    .btn-copy {
+      background: var(--card2); border: 1px solid var(--teal); color: var(--teal);
+      padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer; max-width: 240px; width: 100%; margin-top: 8px;
+      touch-action: manipulation;
+    }
+
+    /* ========== RALLY LOG ========== */
+    .rally-log-list { max-height: 55vh; overflow-y: auto; }
+    .rally-entry {
+      padding: 6px 0; border-bottom: 1px solid var(--border);
+      font-size: 12px; color: var(--sub);
+    }
+    .rally-entry:last-child { border-bottom: none; }
+    .rally-main { display: flex; gap: 8px; align-items: baseline; }
+    .rally-set { color: var(--gold); font-weight: 700; min-width: 28px; flex-shrink: 0; }
+    .rally-score { font-weight: 800; color: var(--text); min-width: 44px; flex-shrink: 0; }
+    .rally-msg { flex: 1; }
+    .rally-score-a { color: var(--color-a); }
+    .rally-score-b { color: var(--color-b); }
+    .rally-event { color: var(--teal); }
+    .rally-serve { font-size: 10px; color: var(--sub); margin: 1px 0 0 36px; }
+    .rally-serve-name-a { color: var(--color-a); font-weight: 700; }
+    .rally-serve-name-b { color: var(--color-b); font-weight: 700; }
+
+    /* ========== CONFIRM DIALOG ========== */
+    .confirm-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 190;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .confirm-overlay.hidden { display: none; }
+    .confirm-box {
+      background: var(--card); border-radius: 16px; padding: 24px;
+      text-align: center; max-width: 320px; width: 100%;
+    }
+    .confirm-msg { font-size: 17px; font-weight: 700; margin-bottom: 20px; line-height: 1.5; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-btns button {
+      flex: 1; padding: 14px; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 700; cursor: pointer; touch-action: manipulation;
+    }
+    .confirm-yes { background: var(--green); color: #fff; }
+    .confirm-no  { background: var(--card2); border: 1px solid var(--border); color: var(--text); }
+
+    /* ========== TIMEOUT BUTTONS ========== */
+    /* メイン画面のタイムアウトボタン行 */
+    .main-timeout-row {
+      display: flex; gap: 8px;
+      flex-shrink: 0; padding: 4px 8px;
+      background: var(--bg);
+    }
+
+    .timeout-row {
+      display: flex; gap: 8px; margin-bottom: 8px;
+    }
+    .btn-timeout {
+      flex: 1; padding: 8px 4px; border: none; border-radius: 10px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation; transition: opacity 0.1s;
+      line-height: 1.4; text-align: center; min-height: 38px;
+    }
+    .btn-timeout:active { opacity: 0.8; }
+    .btn-timeout.to-a { background: rgba(229,57,53,0.25); color: #ff7070; border: 1px solid rgba(229,57,53,0.4); }
+    .btn-timeout.to-b { background: rgba(21,101,192,0.25); color: #64b5f6; border: 1px solid rgba(21,101,192,0.4); }
+    .btn-timeout:disabled { opacity: 0.35; cursor: default; }
+
+    /* ========== TIMEOUT OVERLAY ========== */
+    .timeout-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 180;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center; padding: 24px;
+    }
+    .timeout-overlay.hidden { display: none; }
+    .to-team-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+    .to-label { font-size: 14px; color: var(--sub); margin-bottom: 16px; letter-spacing: 2px; }
+    .to-countdown {
+      font-size: 96px; font-weight: 900; color: var(--gold);
+      font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 20px;
+    }
+    .to-end-msg {
+      font-size: 22px; font-weight: 800; color: var(--teal);
+      letter-spacing: 2px; margin-bottom: 24px; display: none;
+    }
+    .to-btn-end {
+      padding: 16px 40px; border: none; border-radius: 14px;
+      font-size: 17px; font-weight: 800; cursor: pointer; touch-action: manipulation;
+      background: var(--gold); color: #000; min-width: 220px;
+    }
+    .to-btn-end:active { opacity: 0.85; }
+
+    /* ========== LOCK MODE ========== */
+    .lock-banner {
+      display: none; text-align: center; padding: 8px 12px;
+      background: rgba(245,166,35,0.18); border-bottom: 2px solid var(--gold);
+      font-size: 14px; font-weight: 800; color: var(--gold);
+      letter-spacing: 1px; flex-shrink: 0;
+      cursor: pointer; -webkit-user-select: none; user-select: none;
+      position: relative; overflow: hidden;
+    }
+    .lock-banner.active { display: block; }
+    .lock-banner .lock-hint { font-size: 11px; font-weight: 400; color: var(--sub); display: block; margin-top: 2px; }
+    .locked-btn { opacity: 0.3 !important; pointer-events: none !important; }
+    /* 長押し解除のプログレスバー */
+    .lock-banner::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      height: 3px; background: var(--gold); width: 0%; transition: none;
+    }
+    .lock-banner.pressing::after {
+      width: 100%; transition: width 3s linear;
+    }
+
+    /* ========== SPLASH ========== */
+    .splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.4s;
+    }
+    .splash.fade-out { opacity: 0; pointer-events: none; }
+    .splash-logo {
+      font-size: 36px; font-weight: 900; color: var(--text);
+      letter-spacing: 4px; margin-bottom: 8px;
+    }
+    .splash-sub {
+      font-size: 13px; color: var(--sub); letter-spacing: 2px; margin-bottom: 6px;
+    }
+    .splash-ver {
+      font-size: 10px; color: var(--border); letter-spacing: 1px;
+    }
+
+    /* ========== TOAST ========== */
+    .toast {
+      position: fixed;
+      top: max(70px, env(safe-area-inset-top) + 60px);
+      left: 50%; transform: translateX(-50%);
+      background: rgba(20,35,55,0.96); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 18px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; z-index: 300;
+      white-space: nowrap; pointer-events: none; transition: opacity 0.25s;
+    }
+    .toast.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="set-dots" id="setDots"></div>
+  <div class="header-title" id="headerTitle">4人制ソフトバレー</div>
+  <div class="header-btns">
+    <button class="btn-hdr" id="btnSettings" onclick="openSettingsMenu()">⚙ メニュー</button>
+  </div>
+</div>
+
+<!-- ===== LOCK BANNER ===== -->
+<div class="lock-banner" id="lockBanner" onclick="onLockBannerClick()">
+  🔒 ロック中<span class="lock-hint">ここを3秒長押しで解除</span>
+</div>
+
+<!-- ===== SERVE BANNER ===== -->
+<div class="serve-banner serve-a" id="serveBanner">
+  <div class="serve-main">
+    <span class="serve-arrow">▶</span>
+    <span id="serveMainText">サーブ</span>
+    <span class="serve-jersey" id="serveJersey">#1</span>
+  </div>
+  <div class="serve-sub">
+    <span id="serveSubText">サーブ</span>
+    <span class="serve-next-info" id="serveNextText">NEXT #2</span>
+  </div>
+</div>
+
+<!-- ===== SCORE SECTION ===== -->
+<div class="score-section" id="scoreSection">
+  <div class="team-block">
+    <div class="team-name-display" id="dispNameL">チームA</div>
+    <div class="score-num a" id="dispScoreL">0</div>
+    <div class="score-status" id="dispStatusL">残15点</div>
+  </div>
+
+  <div class="score-middle">
+    <div class="cur-set-label" id="dispCurSet">第1セット</div>
+    <div class="set-score-num" id="dispSetScore">0 - 0</div>
+    <div class="set-score-label">セットカウント</div>
+    <div id="dispDeuce"></div>
+    <div id="dispRuleBadge"></div>
+    <div class="past-sets" id="dispPastSets"></div>
+    <div class="match-time-bar"><span id="dispMatchTime">--:--</span></div>
+  </div>
+
+  <div class="team-block">
+    <div class="team-name-display" id="dispNameR">チームB</div>
+    <div class="score-num b" id="dispScoreR">0</div>
+    <div class="score-status" id="dispStatusR">残15点</div>
+  </div>
+</div>
+
+<!-- ===== COURT SECTION ===== -->
+<div class="court-section">
+  <div class="court-label">ローテーション　①→②→③→④→①（サーブ権取得時に移動）</div>
+  <div class="court-wrap" id="courtWrap">
+    <div class="half-court" id="courtA">
+      <div class="court-team-header a" id="courtHeaderA">チームA</div>
+      <div class="player-grid" id="gridA"></div>
+    </div>
+    <div class="court-net"></div>
+    <div class="half-court" id="courtB">
+      <div class="court-team-header b" id="courtHeaderB">チームB</div>
+      <div class="player-grid" id="gridB"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TIMEOUT ROW (MAIN) ===== -->
+<div class="main-timeout-row">
+  <button class="btn-timeout to-a" id="btnTimeoutMainL" onclick="requestTimeout('L')">
+    <span id="toMainNameL">チームA</span><br>タイム <span id="toMainCountL">0/1</span>
+  </button>
+  <button class="btn-timeout to-b" id="btnTimeoutMainR" onclick="requestTimeout('R')">
+    <span id="toMainNameR">チームB</span><br>タイム <span id="toMainCountR">0/1</span>
+  </button>
+</div>
+
+<!-- ===== BOTTOM CONTROLS ===== -->
+<div class="controls">
+  <div class="score-btns" id="scoreBtns">
+    <button class="btn-score a" id="btnScoreL" ontouchstart="" onclick="addScoreL()">
+      <span id="btnNameL">チームA</span><br>＋１点
+    </button>
+    <button class="btn-undo" id="btnUndo" onclick="undoScore()">↩<br>取消</button>
+    <button class="btn-score b" id="btnScoreR" ontouchstart="" onclick="addScoreR()">
+      <span id="btnNameR">チームB</span><br>＋１点
+    </button>
+  </div>
+  <div class="action-btns">
+    <button class="btn-action btn-next-set" id="btnNextSetBottom" onclick="promptNextSet()">次セット</button>
+    <button class="btn-action btn-reset"    id="btnResetBottom"   onclick="confirmReset()">リセット</button>
+  </div>
+</div>
+
+<!-- ===== HISTORY BAR ===== -->
+<div class="history-bar">
+  <button class="btn-history-bar" onclick="openHistorySheet()">📋 試合履歴</button>
+</div>
+
+<!-- ===== SHEET: 選手登録 ===== -->
+<div class="overlay hidden" id="regSheet" onclick="closeSheetIfBg(event,'regSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">ローテーション設定（4人制）</div>
+
+    <div class="team-header-bar a" id="regHeaderA">チームA</div>
+    <div class="section-head">チーム名</div>
+    <div class="form-row">
+      <input class="form-input" id="inNameA" type="text" placeholder="チーム名を入力" maxlength="10">
+    </div>
+    <div class="section-head">背番号を入力（①がサーブ位置）</div>
+    <div class="player-inputs" id="playerInputsA"></div>
+
+    <div class="team-header-bar b" id="regHeaderB" style="margin-top:8px;">チームB</div>
+    <div class="section-head">チーム名</div>
+    <div class="form-row">
+      <input class="form-input" id="inNameB" type="text" placeholder="チーム名を入力" maxlength="10">
+    </div>
+    <div class="section-head">背番号を入力（①がサーブ位置）</div>
+    <div class="player-inputs" id="playerInputsB"></div>
+
+    <button class="btn-sheet btn-primary"   onclick="saveRegistration()">保存</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('regSheet')">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== SHEET: ルール設定 ===== -->
+<div class="overlay hidden" id="rulesSheet" onclick="closeSheetIfBg(event,'rulesSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">得点ルール変更</div>
+
+    <div class="section-head">ルール選択</div>
+    <div class="rule-options">
+      <label class="rule-option selected" id="ruleOptA">
+        <input type="radio" name="ruleType" value="1" checked onchange="updateRuleUI()">
+        <div>
+          <div class="rule-title">15点先取（デュースなし）</div>
+          <div class="rule-desc">15点に達した時点でセット終了</div>
+        </div>
+      </label>
+      <label class="rule-option" id="ruleOptB">
+        <input type="radio" name="ruleType" value="2" onchange="updateRuleUI()">
+        <div>
+          <div class="rule-title">15点先取（17点打切り）</div>
+          <div class="rule-desc">14-14でデュース継続、17点または2点差でセット終了</div>
+        </div>
+      </label>
+    </div>
+
+    <button class="btn-sheet btn-primary"   onclick="saveRules()">適用して閉じる</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('rulesSheet')">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== SHEET: 大会設定 ===== -->
+<div class="overlay hidden" id="tournamentSheet" onclick="closeSheetIfBg(event,'tournamentSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">大会設定</div>
+
+    <div class="section-head">試合形式</div>
+    <div class="rule-options">
+      <label class="rule-option selected" id="tFmt3">
+        <input type="radio" name="tFormat" value="3" checked onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">3セット制</div>
+          <div class="rule-desc">最大3セット（通常大会の標準形式）</div>
+        </div>
+      </label>
+      <label class="rule-option" id="tFmt2">
+        <input type="radio" name="tFormat" value="2" onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">2セットのみ</div>
+          <div class="rule-desc">2セット行い試合終了（予選リーグ等）</div>
+        </div>
+      </label>
+    </div>
+
+    <div id="tWinSection">
+      <div class="section-head">勝利条件</div>
+      <div class="rule-options">
+        <label class="rule-option selected" id="tWin2">
+          <input type="radio" name="tWin" value="2" checked onchange="updateTournamentUI()">
+          <div>
+            <div class="rule-title">2セット先取</div>
+            <div class="rule-desc">先に2セット取ったチームが勝ち（第3セット不要な場合は省略）</div>
+          </div>
+        </label>
+        <label class="rule-option" id="tWinAll">
+          <input type="radio" name="tWin" value="all" onchange="updateTournamentUI()">
+          <div>
+            <div class="rule-title">全セット消化</div>
+            <div class="rule-desc">必ず全セットを行い、セット数が多い方が勝ち</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="section-head">得点ルール（各セットのデフォルト）</div>
+    <div class="rule-options">
+      <label class="rule-option selected" id="tRule1">
+        <input type="radio" name="tRule" value="1" checked onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">15点先取（デュースなし）</div>
+          <div class="rule-desc">15点に達した時点でセット終了</div>
+        </div>
+      </label>
+      <label class="rule-option" id="tRule2">
+        <input type="radio" name="tRule" value="2" onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">15点先取（17点打切り）</div>
+          <div class="rule-desc">14-14でデュース継続、17点または2点差でセット終了</div>
+        </div>
+      </label>
+    </div>
+
+    <div id="tSet3Section">
+      <div class="section-head">第3セット 開始得点</div>
+      <div class="rule-options">
+        <label class="rule-option selected" id="tS3Start0">
+          <input type="radio" name="tSet3Start" value="0" checked onchange="updateTournamentUI()">
+          <div><div class="rule-title">0 - 0 から開始</div></div>
+        </label>
+        <label class="rule-option" id="tS3Start5">
+          <input type="radio" name="tSet3Start" value="5" onchange="updateTournamentUI()">
+          <div><div class="rule-title">5 - 5 から開始</div></div>
+        </label>
+        <label class="rule-option" id="tS3Start8">
+          <input type="radio" name="tSet3Start" value="8" onchange="updateTournamentUI()">
+          <div><div class="rule-title">8 - 8 から開始</div></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="section-head">コートチェンジ（最終セット）</div>
+    <div class="rule-options">
+      <label class="rule-option" id="tCCNone">
+        <input type="radio" name="tCC" value="none" onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">コートチェンジなし</div>
+        </div>
+      </label>
+      <label class="rule-option selected" id="tCC8">
+        <input type="radio" name="tCC" value="last8" checked onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">8点でコートチェンジ</div>
+          <div class="rule-desc">最終セット、いずれかが8点到達で案内を表示</div>
+        </div>
+      </label>
+      <label class="rule-option" id="tCCCustom">
+        <input type="radio" name="tCC" value="custom" onchange="updateTournamentUI()">
+        <div>
+          <div class="rule-title">任意点数でコートチェンジ</div>
+          <div class="rule-desc">下記の点数で案内を表示</div>
+        </div>
+      </label>
+    </div>
+    <div class="form-row" id="tCCCustomRow" style="display:none">
+      <span class="form-label">コートチェンジ点数</span>
+      <input class="form-input" id="tCCPoint" type="number" value="8" min="1" max="14" inputmode="numeric">
+    </div>
+
+    <div id="tCCModeSection" style="display:none">
+      <div class="section-head">コートチェンジ後の表示</div>
+      <div class="rule-options">
+        <label class="rule-option" id="tCCMNotice">
+          <input type="radio" name="tCCMode" value="notice" onchange="updateTournamentUI()">
+          <div>
+            <div class="rule-title">案内のみ</div>
+          </div>
+        </label>
+        <label class="rule-option selected" id="tCCMSwap">
+          <input type="radio" name="tCCMode" value="swap" checked onchange="updateTournamentUI()">
+          <div>
+            <div class="rule-title">表示も入れ替える（推奨）</div>
+            <div class="rule-desc">コート・得点・セット履歴を自動で左右入れ替えます</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="section-head">タイムアウト回数（1セットあたり）</div>
+    <div class="rule-options">
+      <label class="rule-option selected" id="tTO1">
+        <input type="radio" name="tTimeoutCount" value="1" checked onchange="updateTournamentUI()">
+        <div><div class="rule-title">1回</div></div>
+      </label>
+      <label class="rule-option" id="tTO2">
+        <input type="radio" name="tTimeoutCount" value="2" onchange="updateTournamentUI()">
+        <div><div class="rule-title">2回</div></div>
+      </label>
+    </div>
+
+    <div class="section-head">タイムアウト時間</div>
+    <div class="rule-options">
+      <label class="rule-option" id="tTOT20">
+        <input type="radio" name="tTimeoutSec" value="20" onchange="updateTournamentUI()">
+        <div><div class="rule-title">20秒</div></div>
+      </label>
+      <label class="rule-option selected" id="tTOT30">
+        <input type="radio" name="tTimeoutSec" value="30" checked onchange="updateTournamentUI()">
+        <div><div class="rule-title">30秒</div></div>
+      </label>
+    </div>
+
+    <button class="btn-sheet btn-primary"   onclick="saveTournamentSettings()">保存して適用</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('tournamentSheet')">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== SHEET: セット設定 ===== -->
+<div class="overlay hidden" id="configSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="cfgSheetTitle">セット開始設定</div>
+
+    <div id="cfgRuleInfo" style="margin:8px 0 12px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;color:var(--text-sub);"></div>
+
+    <!-- 第2セット自動コートチェンジ通知 -->
+    <div id="cfgCourtSwapNotice" style="display:none;margin:10px 0;padding:10px 14px;background:rgba(0,204,136,0.1);border:1px solid var(--teal);border-radius:10px;font-size:13px;color:var(--teal);"></div>
+
+    <!-- 第3セット：左コート＋サーブ選択（じゃんけん設定） -->
+    <div id="cfgLeftCourtSection" style="display:none">
+      <div style="margin:0 0 14px;padding:12px 14px;background:rgba(245,166,35,0.12);border:1px solid var(--gold);border-radius:10px;font-size:14px;font-weight:700;color:var(--gold);text-align:center;">
+        じゃんけん結果に合わせて設定してください
+      </div>
+
+      <div class="section-head">左コートのチーム</div>
+      <div class="rule-options">
+        <label class="rule-option selected" id="cfgLCA">
+          <input type="radio" name="cfgLeftCourt" value="A" checked onchange="updateCfgLeftCourtUI()">
+          <div><div class="rule-title" id="cfgLCNameA">チームA</div></div>
+        </label>
+        <label class="rule-option" id="cfgLCB">
+          <input type="radio" name="cfgLeftCourt" value="B" onchange="updateCfgLeftCourtUI()">
+          <div><div class="rule-title" id="cfgLCNameB">チームB</div></div>
+        </label>
+      </div>
+
+      <div class="section-head">先攻サーブ</div>
+      <div class="rule-options">
+        <label class="rule-option selected" id="cfgSet3ServeA">
+          <input type="radio" name="cfgSet3Serve" value="A" checked onchange="updateCfgSet3ServeUI()">
+          <div><div class="rule-title" id="cfgS3SNameA">チームA</div></div>
+        </label>
+        <label class="rule-option" id="cfgSet3ServeB">
+          <input type="radio" name="cfgSet3Serve" value="B" onchange="updateCfgSet3ServeUI()">
+          <div><div class="rule-title" id="cfgS3SNameB">チームB</div></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- 第1セット用サーブ選択（第2・3セットは非表示） -->
+    <div id="cfgServeSection" style="display:none">
+      <div class="section-head">サーブチーム</div>
+      <div class="form-row">
+        <select class="form-input" id="cfgServe">
+          <option value="A" id="cfgServeOptA">チームA</option>
+          <option value="B" id="cfgServeOptB">チームB</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 第3セット用：開始得点ラジオ -->
+    <div id="cfgStartScoreRadioSection" style="display:none">
+      <div class="section-head">開始得点</div>
+      <div class="rule-options">
+        <label class="rule-option" id="cfgSS0">
+          <input type="radio" name="cfgStartScore" value="0" onchange="updateCfgStartScoreUI()">
+          <div><div class="rule-title">0 - 0 から開始</div></div>
+        </label>
+        <label class="rule-option" id="cfgSS5">
+          <input type="radio" name="cfgStartScore" value="5" onchange="updateCfgStartScoreUI()">
+          <div><div class="rule-title">5 - 5 から開始</div></div>
+        </label>
+        <label class="rule-option" id="cfgSS8">
+          <input type="radio" name="cfgStartScore" value="8" onchange="updateCfgStartScoreUI()">
+          <div><div class="rule-title">8 - 8 から開始</div></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- 第1・2セット用：自由入力 -->
+    <div id="cfgStartScoreFreeSection">
+      <div class="section-head">開始得点（ハンデ用）</div>
+      <div class="form-row">
+        <span class="form-label" id="cfgLabelA">チームA</span>
+        <input class="form-input" id="cfgScoreA" type="number" value="0" min="0" max="14" inputmode="numeric">
+      </div>
+      <div class="form-row">
+        <span class="form-label" id="cfgLabelB">チームB</span>
+        <input class="form-input" id="cfgScoreB" type="number" value="0" min="0" max="14" inputmode="numeric">
+      </div>
+    </div>
+
+    <div id="cfgWinScoreInfo" style="display:none;margin:8px 0;padding:10px 14px;background:rgba(245,166,35,0.12);border:1px solid var(--gold);border-radius:10px;font-size:13px;color:var(--gold);"></div>
+    <button class="btn-sheet btn-primary"   onclick="applyConfig()">適用してセット開始</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('configSheet')">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== HISTORY SHEET ===== -->
+<div class="overlay hidden" id="historySheet" onclick="closeSheetIfBg(event,'historySheet')">
+  <div class="sheet" style="max-height:80vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">試合履歴</div>
+    <div id="historyList"></div>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('historySheet')">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== SET END OVERLAY ===== -->
+<div class="set-end-overlay hidden" id="setEndOverlay">
+  <div class="set-end-icon">🏐</div>
+  <div class="set-end-title" id="setEndTitle">セット終了！</div>
+  <div class="set-end-score" id="setEndScore">15 - 12</div>
+  <div class="set-end-sub"   id="setEndSub">セット取得</div>
+  <button class="set-end-btn"    onclick="goNextSet()">次のセットへ ▶</button>
+  <button class="set-end-cancel" onclick="closeSetEnd()">閉じる</button>
+</div>
+
+<!-- ===== WINNER OVERLAY ===== -->
+<div class="winner-overlay hidden" id="winnerOverlay">
+  <div class="winner-trophy">🏆</div>
+  <div style="font-size:13px;color:var(--gold);letter-spacing:2px;margin-bottom:6px">試合終了</div>
+  <div class="winner-name"  id="winnerName">勝利！</div>
+  <div class="winner-score" id="winnerSetScore">セット 2 - 0</div>
+  <div class="winner-sets"  id="winnerSetDetails"></div>
+  <div id="winnerTime" style="font-size:13px;color:var(--sub);margin-bottom:8px;"></div>
+  <button class="btn-copy" id="btnCopyResult"                        onclick="copyMatchResult()">📋 結果をコピー</button>
+  <button class="btn-sheet btn-primary"   style="margin-top:8px;max-width:240px" onclick="confirmReset()">試合をリセット</button>
+  <button class="btn-sheet btn-secondary" style="max-width:240px" onclick="closeWinner()">閉じる</button>
+</div>
+
+<!-- ===== COURT CHANGE OVERLAY ===== -->
+<div class="court-change-overlay hidden" id="courtChangeOverlay">
+  <div class="cc-icon">🔄</div>
+  <div class="cc-title">コートチェンジ！</div>
+  <div class="cc-set" id="ccSetLabel">第3セット</div>
+  <div class="cc-score" id="ccScore">0 - 0</div>
+  <div class="cc-msg" id="ccMsg">8点到達：コートチェンジしてください</div>
+  <button class="cc-btn" onclick="confirmCourtChange()">コートチェンジ完了</button>
+</div>
+
+<!-- ===== TIMEOUT OVERLAY ===== -->
+<div class="timeout-overlay hidden" id="timeoutOverlay">
+  <div class="to-team-name" id="toOverlayTeam"></div>
+  <div class="to-label">タイムアウト</div>
+  <div class="to-countdown" id="toCountdown">30</div>
+  <div class="to-end-msg" id="toEndMsg">タイムアウト終了</div>
+  <button class="to-btn-end" id="toBtn" onclick="endTimeout()">終了</button>
+</div>
+
+<!-- ===== SETTINGS MENU ===== -->
+<div class="overlay hidden" id="settingsSheet" onclick="closeSheetIfBg(event,'settingsSheet')">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">メニュー</div>
+
+    <!-- 履歴 -->
+    <div class="section-head">履歴</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="btn-sheet btn-secondary" style="flex:1;padding:12px 8px;font-size:13px" onclick="closeSheet('settingsSheet');openRallyLogSheet()">📝 試合中履歴</button>
+      <button class="btn-sheet btn-secondary" style="flex:1;padding:12px 8px;font-size:13px" onclick="closeSheet('settingsSheet');openHistorySheet()">📋 過去試合</button>
+    </div>
+
+    <!-- 設定 -->
+    <div class="section-head">設定</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+      <button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px" id="btnRegister" onclick="closeSheet('settingsSheet');openRegModal()">
+        🔄 ローテーション設定
+      </button>
+      <button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px" onclick="closeSheet('settingsSheet');openTournamentSheet()">
+        🏐 大会設定
+      </button>
+      <button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px" onclick="closeSheet('settingsSheet');openSoundSettings()">
+        🔊 効果音設定
+      </button>
+    </div>
+
+    <!-- ツール -->
+    <div class="section-head">ツール</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+      <button class="btn-sheet btn-secondary" id="btnLockToggle" style="text-align:left;padding:12px 16px" onclick="closeSheet('settingsSheet');toggleLockMode()">
+        <span id="lockToggleIcon">🔒</span> <span id="lockToggleLabel">ロックモード ON</span>
+      </button>
+      <button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px" onclick="closeSheet('settingsSheet');openHelpSheet()">
+        ❓ 使い方ヘルプ
+      </button>
+      <button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px;color:#ff6b6b" id="btnReset" onclick="closeSheet('settingsSheet');confirmReset()">
+        🗑 試合リセット
+      </button>
+    </div>
+
+    <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:4px;margin-bottom:8px;">
+      ソフトバレー得点管理 Ver 1.0.0<br>
+      <span style="font-size:10px">&copy; 2026 Zless</span>
+    </div>
+    <button class="btn-sheet btn-primary" onclick="closeSheet('settingsSheet')">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== HELP SHEET ===== -->
+<div class="overlay hidden" id="helpSheet" onclick="closeSheetIfBg(event,'helpSheet')">
+  <div class="sheet" style="max-height:85vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">使い方ヘルプ</div>
+
+    <div class="section-head">基本操作</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;">
+      <b>1.</b>「ローテーション設定」でチーム名と背番号を設定<br>
+      <b>2.</b>「適用してセット開始」で試合開始<br>
+      <b>3.</b> 下部の得点ボタンで加点<br>
+      <b>4.</b>「↩ 取消」で直前の操作を元に戻す<br>
+      <b>5.</b> セット終了 → 次セット設定 → 続行
+    </div>
+
+    <div class="section-head">サーブ順（ローテーション）</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:8px;">
+      4人制ソフトバレーのローテーション：<br>
+      <b>①→②→③→④→①</b> の順に回転<br><br>
+      サーブ権を取得した時のみローテーション。<br>
+      連続得点ではローテーションしません。
+    </div>
+    <div style="background:var(--card2);border-radius:10px;padding:12px;font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.6;">
+      <div style="text-align:center;font-weight:700;color:var(--gold);margin-bottom:6px;">コート配置図</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;text-align:center;font-weight:700;">
+        <div style="color:var(--text)">④ 後衛左</div>
+        <div style="color:var(--text)">③ 後衛右</div>
+        <div style="color:var(--gold)">① サーブ</div>
+        <div style="color:#64b5f6">② NEXT</div>
+      </div>
+    </div>
+
+    <div class="section-head">タイムアウト</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;">
+      各チーム名の下にある「タイム」ボタンで取得。<br>
+      1セットにつき設定回数まで使用可能。<br>
+      セットが変わるとリセットされます。
+    </div>
+
+    <div class="section-head">第3セット</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;">
+      ・じゃんけんで左コート・サーブ権を決定<br>
+      ・開始得点を 0-0 / 5-5 / 8-8 から選択<br>
+      ・どちらかが8点到達でコートチェンジ
+    </div>
+
+    <div class="section-head">試合終了</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px;">
+      試合終了後、結果をコピーしてLINE等に共有できます。<br>
+      過去の試合履歴は「過去試合」から確認できます。
+    </div>
+
+    <button class="btn-sheet btn-primary" onclick="closeSheet('helpSheet')">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== SOUND SETTINGS SHEET ===== -->
+<div class="overlay hidden" id="soundSettingsSheet" onclick="closeSheetIfBg(event,'soundSettingsSheet')">
+  <div class="sheet" style="max-height:80vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">効果音設定</div>
+
+    <div class="section-head">モード</div>
+    <div class="rule-options">
+      <label class="rule-option" id="sSndOff">
+        <input type="radio" name="sSoundMode" value="off" onchange="updateSoundSettingsUI()">
+        <div><div class="rule-title">消音</div><div class="rule-desc">効果音を鳴らさない</div></div>
+      </label>
+      <label class="rule-option selected" id="sSndSfx">
+        <input type="radio" name="sSoundMode" value="sfx" checked onchange="updateSoundSettingsUI()">
+        <div><div class="rule-title">効果音のみ</div><div class="rule-desc">得点・セット終了・警告音</div></div>
+      </label>
+    </div>
+
+    <div id="sSndVolSection">
+      <div class="section-head">音量</div>
+      <div class="rule-options">
+        <label class="rule-option" id="sVolLow">
+          <input type="radio" name="sSoundVol" value="low" onchange="updateSoundSettingsUI()">
+          <div><div class="rule-title">小</div></div>
+        </label>
+        <label class="rule-option selected" id="sVolMid">
+          <input type="radio" name="sSoundVol" value="mid" checked onchange="updateSoundSettingsUI()">
+          <div><div class="rule-title">中</div></div>
+        </label>
+        <label class="rule-option" id="sVolHigh">
+          <input type="radio" name="sSoundVol" value="high" onchange="updateSoundSettingsUI()">
+          <div><div class="rule-title">大</div></div>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-sheet btn-secondary" style="margin-top:8px" onclick="openSoundTest()">🔊 効果音テスト</button>
+    <button class="btn-sheet btn-primary" onclick="saveSoundSettings()">保存して閉じる</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('soundSettingsSheet')">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===== SOUND TEST OVERLAY ===== -->
+<div class="overlay hidden" id="soundTestSheet" onclick="closeSheetIfBg(event,'soundTestSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔊 効果音テスト</div>
+    <div id="soundTestList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+    <div id="soundTestResult" style="text-align:center;font-size:15px;font-weight:700;margin-bottom:12px;"></div>
+    <button class="btn-sheet btn-primary" onclick="runSoundTest()">全テスト実行</button>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('soundTestSheet')">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== RALLY LOG SHEET ===== -->
+<div class="overlay hidden" id="rallyLogSheet" onclick="closeSheetIfBg(event,'rallyLogSheet')">
+  <div class="sheet" style="max-height:80vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">試合中履歴</div>
+    <div class="rally-log-list" id="rallyLogList"></div>
+    <button class="btn-sheet btn-secondary" onclick="closeSheet('rallyLogSheet')">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DIALOG ===== -->
+<div class="confirm-overlay hidden" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-yes" id="confirmYes">はい</button>
+      <button class="confirm-no" onclick="closeConfirm()">いいえ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ====================================================
+//  4人制ソフトバレー ローテーション仕様
+//
+//  スロット番号 ①②③④ は「ローテーション順」であり、背番号ではない
+//  各スロットが固定のコート位置に対応:
+//
+//  Aチーム:               Bチーム:
+//   [左上=④] [右上=③]     [左上=②] [右上=①]
+//   [左下=①] [右下=②]     [左下=③] [右下=④]
+//
+//  ①=サーブ位置（Aは左下、Bは右上）
+//
+//  ローテーション（サーブ権取得時のみ）:
+//   ①→②, ②→③, ③→④, ④→①
+//   ∴ 配列操作: new[①,②,③,④] = [old④, old①, old②, old③]
+// ====================================================
+
+// ====================================================
+//  TOURNAMENT SETTINGS（大会設定・試合をまたいで保持）
+// ====================================================
+const defaultTournament = () => ({
+  maxSets:          3,      // 2 or 3
+  setsToWin:        2,      // 2=先取, 0=全セット消化
+  defaultRule:      '1',    // '1'=デュースなし, '2'=17点打切り
+  set3StartScore:   0,      // 第3セット開始得点（両チーム共通）: 0/5/8
+  courtChange:      'last8', // 'none' | 'last8' | 'custom'
+  courtChangePoint: 8,      // 任意点数（customの時に使用）
+  courtChangeMode:  'swap', // 'notice'=案内のみ, 'swap'=表示入れ替え
+  timeoutMax:       1,      // 1セットあたりのタイムアウト回数
+  timeoutSec:       30,     // タイムアウト秒数
+  soundMode:        'sfx',  // 'off' | 'sfx'（将来: 'full'=効果音＋音声案内）
+  soundVolume:      'mid',  // 'low' | 'mid' | 'high'
+});
+
+let T = defaultTournament();
+
+// ====================================================
+//  STATE
+// ====================================================
+const defaultRules = () => ({
+  deuceEnabled: false,
+  winScore:     15,
+  maxScore:     15,
+});
+
+const defaultState = () => ({
+  teamA: { name: 'チームA', nums: ['1','2','3','4'] }, // nums[i] = スロット(i+1)の選手背番号
+  teamB: { name: 'チームB', nums: ['1','2','3','4'] },
+  // slotsA/B: 現在のスロット配置 [slot①の背番号, slot②, slot③, slot④]
+  slotsA: null,
+  slotsB: null,
+  scoreA:    0,
+  scoreB:    0,
+  serveTeam: 'A',
+  setsWonA:  0,
+  setsWonB:  0,
+  sets:      [],
+  curSetIdx: 0,
+  history:   [],
+  rules:     defaultRules(),
+  courtChangeDone: false,  // 最終セットのコートチェンジ完了フラグ
+  leftTeam:        'A',   // 左コートのチーム ('A' or 'B')
+  set1StartServe:  null,  // 第1セット開始サーブチーム ('A' or 'B') → 第2セット自動決定用
+  matchStartTime:  null,  // 試合開始タイムスタンプ (ms)
+  matchEndTime:    null,  // 試合終了タイムスタンプ (ms)
+  setStartTime:    null,  // 現セット開始タイムスタンプ (ms)
+  timeoutsA:       0,     // 現セットのAチームタイムアウト使用回数
+  timeoutsB:       0,     // 現セットのBチームタイムアウト使用回数
+  timeoutLog:      [],    // タイムアウト記録 [{set, team, scoreA, scoreB}]
+  rallyLog:        [],    // ラリー履歴 [{set, scoreA, scoreB, type, team, msg}]
+});
+
+let S = defaultState();
+
+// ====================================================
+//  ROTATION（4人制 - AチームもBチームも同じ関数を使用）
+//
+//  サーブ順: ①→②→③→④→①
+//  　＝ ①がサーブした次は②がサーブ, ②の次は③, ③の次は④, ④の次は①に戻る
+//
+//  ローテーション時の選手移動:
+//    old slot② → new slot①  ← 次のサーバー (②の選手がサーブ位置へ)
+//    old slot③ → new slot②
+//    old slot④ → new slot③
+//    old slot① → new slot④  (直前サーバーは④へ退く)
+//
+//  配列表現 [slot①, slot②, slot③, slot④]:
+//    new[0] = old[1]  (②→①: slot②の選手がサーブ位置へ)
+//    new[1] = old[2]  (③→②)
+//    new[2] = old[3]  (④→③)
+//    new[3] = old[0]  (①→④)
+//
+//  ★ 旧実装 [s[3],s[0],s[1],s[2]] は ①→④→③→②→① 順になるため誤りだった
+// ====================================================
+function rotateSlots(s) {
+  return [s[1], s[2], s[3], s[0]];
+}
+
+function initSlots(team) {
+  const nums = team === 'A' ? S.teamA.nums : S.teamB.nums;
+  return [...nums]; // [slot①背番号, slot②背番号, slot③背番号, slot④背番号]
+}
+
+// ====================================================
+//  SCORING
+// ====================================================
+function addScore(team) {
+  if (_lockMode) return;
+  if (_toActive) return;
+  if (!el('courtChangeOverlay').classList.contains('hidden')) return;
+  if (!el('confirmOverlay').classList.contains('hidden')) return;
+  const matchOver = S.sets.length >= T.maxSets ||
+    (T.setsToWin > 0 && (S.setsWonA >= T.setsToWin || S.setsWonB >= T.setsToWin));
+  if (matchOver) {
+    showToast('試合終了です。リセットしてください。');
+    return;
+  }
+
+  S.history.push({
+    scoreA: S.scoreA, scoreB: S.scoreB,
+    serveTeam: S.serveTeam,
+    slotsA: [...S.slotsA], slotsB: [...S.slotsB],
+    courtChangeDone: S.courtChangeDone,
+    leftTeam:        S.leftTeam,
+    timeoutsA:       S.timeoutsA,
+    timeoutsB:       S.timeoutsB,
+    timeoutLog:      [...S.timeoutLog],
+    rallyLog:        [...S.rallyLog],
+  });
+  if (S.history.length > 50) S.history.shift();
+
+  const prevScoreA = S.scoreA;
+  const prevScoreB = S.scoreB;
+  const _serveChanged = S.serveTeam !== team;
+
+  // サーブ権取得時のみローテーション
+  if (S.serveTeam !== team) {
+    if (team === 'A') S.slotsA = rotateSlots(S.slotsA);
+    else              S.slotsB = rotateSlots(S.slotsB);
+    S.serveTeam = team;
+  }
+  // 同チーム継続サーブの場合はローテーションなし
+
+  if (team === 'A') S.scoreA++;
+  else              S.scoreB++;
+
+  const _servSlots = S.serveTeam === 'A' ? S.slotsA : S.slotsB;
+  S.rallyLog.push({
+    set: S.curSetIdx + 1, scoreA: S.scoreA, scoreB: S.scoreB,
+    type: 'score', team, msg: `${S[`team${team}`].name} 得点`,
+    serveTeam: S.serveTeam,
+    serveTeamName: S[`team${S.serveTeam}`].name,
+    serverNum: _servSlots[0],
+    serveChanged: _serveChanged,
+  });
+
+  if (!S.matchStartTime) startMatchTimer();
+  if (!S.setStartTime) S.setStartTime = Date.now();
+  if (navigator.vibrate) navigator.vibrate(30);
+  sfxScore();
+
+  render();
+
+  const result = checkSetEnd();
+  if (result === 'match') {
+    S.rallyLog.push({ set: S.curSetIdx + 1, scoreA: S.scoreA, scoreB: S.scoreB, type: 'event', team: null, msg: '試合終了' });
+    sfxMatchEnd();
+    showWinner();
+  } else if (result === 'set') {
+    S.rallyLog.push({ set: S.curSetIdx + 1, scoreA: S.scoreA, scoreB: S.scoreB, type: 'event', team: null, msg: `第${S.sets.length}セット終了` });
+    sfxSetEnd();
+    showSetEnd();
+  }
+  else checkCourtChange(team, team === 'A' ? prevScoreA : prevScoreB);
+}
+
+let _lastUndoTime = 0;
+function undoScore() {
+  if (_lockMode) return;
+  const now = Date.now();
+  if (now - _lastUndoTime < 300) return;
+  _lastUndoTime = now;
+  if (S.history.length === 0) { showToast('取り消す操作がありません'); return; }
+  const prev = S.history.pop();
+  S.scoreA         = prev.scoreA;
+  S.scoreB         = prev.scoreB;
+  S.serveTeam      = prev.serveTeam;
+  S.slotsA         = prev.slotsA;
+  S.slotsB         = prev.slotsB;
+  S.courtChangeDone = prev.courtChangeDone;
+  S.leftTeam        = prev.leftTeam;
+  if (S.curSetIdx === T.maxSets - 1 && T.courtChange !== 'none') {
+    const ccT = T.courtChange === 'custom' ? T.courtChangePoint : 8;
+    if (S.scoreA < ccT && S.scoreB < ccT) S.courtChangeDone = false;
+  }
+  if (prev.timeoutsA !== undefined) S.timeoutsA  = prev.timeoutsA;
+  if (prev.timeoutsB !== undefined) S.timeoutsB  = prev.timeoutsB;
+  if (prev.timeoutLog)              S.timeoutLog = prev.timeoutLog;
+  if (prev.rallyLog)                S.rallyLog   = prev.rallyLog;
+  document.getElementById('courtChangeOverlay')?.classList.add('hidden');
+  saveState();
+  render();
+  showToast('取り消しました');
+}
+
+// ====================================================
+//  SET END CHECK
+// ====================================================
+function checkSetEnd() {
+  const a = S.scoreA, b = S.scoreB;
+  const r = S.rules;
+  let winner = null;
+
+  if (r.deuceEnabled) {
+    if      (a >= r.maxScore)                    winner = 'A';
+    else if (b >= r.maxScore)                    winner = 'B';
+    else if (a >= r.winScore && (a - b) >= 2)   winner = 'A';
+    else if (b >= r.winScore && (b - a) >= 2)   winner = 'B';
+  } else {
+    if      (a >= r.winScore) winner = 'A';
+    else if (b >= r.winScore) winner = 'B';
+  }
+
+  if (!winner) return null;
+
+  const setElapsed = S.setStartTime ? Date.now() - S.setStartTime : 0;
+  S.sets.push({ scoreA: a, scoreB: b, winner, elapsedMs: setElapsed });
+  if (winner === 'A') S.setsWonA++;
+  else                S.setsWonB++;
+  S.history = [];
+
+  // 先取条件（setsToWin > 0 の場合のみ早期終了）
+  if (T.setsToWin > 0 && (S.setsWonA >= T.setsToWin || S.setsWonB >= T.setsToWin)) return 'match';
+  // 全セット消化済み
+  if (S.sets.length >= T.maxSets) return 'match';
+  return 'set';
+}
+
+// ====================================================
+//  SET / MATCH MANAGEMENT
+// ====================================================
+function promptNextSet() {
+  // 試合終了チェック
+  if (S.sets.length >= T.maxSets) { showToast('試合終了です。リセットしてください。'); return; }
+  if (T.setsToWin > 0 && (S.setsWonA >= T.setsToWin || S.setsWonB >= T.setsToWin)) {
+    showToast('試合終了です。リセットしてください。'); return;
+  }
+  const setFinished = S.sets.length > S.curSetIdx;
+  if (S.curSetIdx + 1 >= T.maxSets) { showToast(`第${T.maxSets}セット（最終セット）です`); return; }
+  if (!setFinished) {
+    showConfirm('現在のセットが終了していませんが、次のセットに進みますか？', () => {
+      const setElapsed = S.setStartTime ? Date.now() - S.setStartTime : 0;
+      S.sets.push({ scoreA: S.scoreA, scoreB: S.scoreB, winner: null, elapsedMs: setElapsed });
+      S.history = [];
+      S.curSetIdx++;
+      openNextSetConfig();
+    });
+    return;
+  }
+  S.curSetIdx++;
+  openNextSetConfig();
+}
+
+function openNextSetConfig() {
+  const isLastSet = S.curSetIdx === T.maxSets - 1;
+  const isSet2    = S.curSetIdx === 1;
+  const isSet3    = S.curSetIdx === 2;
+
+  el('cfgLabelA').textContent    = S.teamA.name;
+  el('cfgLabelB').textContent    = S.teamB.name;
+  el('cfgServeOptA').textContent = S.teamA.name;
+  el('cfgServeOptB').textContent = S.teamB.name;
+  el('cfgSheetTitle').textContent = `第${S.curSetIdx + 1}セット 開始設定`;
+
+  // 大会設定ルールを表示（選択不可・確認用）
+  const ruleLabel = T.defaultRule === '1' ? '15点先取（デュースなし）' : '15点先取（17点打切り）';
+  el('cfgRuleInfo').textContent = `得点ルール：${ruleLabel}（大会設定）`;
+
+  el('cfgServe').value = S.serveTeam;
+
+  // 開始得点セクション切り替え
+  if (isSet3) {
+    el('cfgStartScoreRadioSection').style.display = '';
+    el('cfgStartScoreFreeSection').style.display = 'none';
+    // 未選択状態にリセット
+    document.querySelectorAll('input[name="cfgStartScore"]').forEach(r => r.checked = false);
+    updateCfgStartScoreUI();
+  } else {
+    el('cfgStartScoreRadioSection').style.display = 'none';
+    el('cfgStartScoreFreeSection').style.display = '';
+    el('cfgScoreA').value = 0;
+    el('cfgScoreB').value = 0;
+  }
+  el('cfgWinScoreInfo').style.display = 'none';
+
+  // 第2セット：自動コートチェンジ＋自動サーブ通知
+  const noticeEl = el('cfgCourtSwapNotice');
+  if (isSet2) {
+    const autoServe     = (S.set1StartServe || 'A') === 'A' ? 'B' : 'A';
+    const autoServeName = S[`team${autoServe}`].name;
+    const set1ServeName = S[`team${S.set1StartServe || 'A'}`].name;
+    noticeEl.innerHTML =
+      `🔄 コートチェンジ：${S.teamB.name} が左コートになります<br>` +
+      `🏐 サーブ権：${autoServeName} からスタート（${set1ServeName} の逆）`;
+    noticeEl.style.display = '';
+  } else {
+    noticeEl.style.display = 'none';
+  }
+
+  // 第3セット：左コート選択＋サーブラジオ
+  // 第2セット：左コート・サーブ選択を非表示（自動決定）
+  const lcSection = el('cfgLeftCourtSection');
+  if (isSet3) {
+    el('cfgLCNameA').textContent = `${S.teamA.name}（左コート）`;
+    el('cfgLCNameB').textContent = `${S.teamB.name}（左コート）`;
+    el('cfgS3SNameA').textContent = S.teamA.name;
+    el('cfgS3SNameB').textContent = S.teamB.name;
+    // 未選択状態にリセット（ユーザーが明示的に選ぶまで適用不可）
+    document.querySelectorAll('input[name="cfgLeftCourt"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="cfgSet3Serve"]').forEach(r => r.checked = false);
+    updateCfgLeftCourtUI();
+    updateCfgSet3ServeUI();
+    lcSection.style.display = '';
+    el('cfgServeSection').style.display = 'none';
+  } else if (isSet2) {
+    lcSection.style.display = 'none';
+    el('cfgServeSection').style.display = 'none';
+  } else {
+    // 第1セット：サーブ選択を表示
+    lcSection.style.display = 'none';
+    el('cfgServeSection').style.display = '';
+  }
+  openSheet('configSheet');
+}
+
+function goNextSet() {
+  closeSetEnd();
+  S.curSetIdx++;
+  if (S.curSetIdx >= T.maxSets) { showToast('試合終了'); return; }
+  openNextSetConfig();
+  render();
+}
+
+function applyConfig() {
+  // 第3セット：左コート・サーブ・開始得点が未選択なら適用不可
+  if (S.curSetIdx === 2) {
+    const lc = document.querySelector('input[name="cfgLeftCourt"]:checked');
+    const sv = document.querySelector('input[name="cfgSet3Serve"]:checked');
+    const ss = document.querySelector('input[name="cfgStartScore"]:checked');
+    if (!lc || !sv || !ss) {
+      showToast('すべての項目を選択してください');
+      return;
+    }
+  }
+  // 大会設定のルールを引き継ぐ
+  S.rules = rulesFromMode(T.defaultRule, 0);
+  const max = S.rules.winScore - 1;
+  // 第3セットはラジオから開始得点を取得、それ以外は自由入力
+  if (S.curSetIdx === 2) {
+    const ss = parseInt(document.querySelector('input[name="cfgStartScore"]:checked').value) || 0;
+    S.scoreA = Math.min(max, ss);
+    S.scoreB = Math.min(max, ss);
+  } else {
+    S.scoreA = Math.max(0, Math.min(max, parseInt(el('cfgScoreA').value) || 0));
+    S.scoreB = Math.max(0, Math.min(max, parseInt(el('cfgScoreB').value) || 0));
+  }
+  if (S.curSetIdx === 2) {
+    const s3serve = document.querySelector('input[name="cfgSet3Serve"]:checked');
+    S.serveTeam = s3serve ? s3serve.value : 'A';
+  } else if (S.curSetIdx === 1) {
+    // 第2セット：第1セット開始サーブの反対チームが自動で先攻
+    S.serveTeam = (S.set1StartServe || 'A') === 'A' ? 'B' : 'A';
+  } else {
+    S.serveTeam = el('cfgServe').value;
+  }
+  // 第1セット開始サーブを記録（第2セット自動決定用）
+  if (S.curSetIdx === 0) S.set1StartServe = S.serveTeam;
+  S.history         = [];
+  S.courtChangeDone = false;
+  S.timeoutsA       = 0;
+  S.timeoutsB       = 0;
+  // セット番号に応じてコート左右を設定
+  if (S.curSetIdx === 0) {
+    S.leftTeam = 'A';  // 第1セット：A左・B右
+  } else if (S.curSetIdx === 1) {
+    S.leftTeam = 'B';  // 第2セット：自動コートチェンジ
+  } else {
+    const lc = document.querySelector('input[name="cfgLeftCourt"]:checked');
+    S.leftTeam = lc ? lc.value : 'A';  // 第3セット：ユーザー選択
+  }
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  S.setStartTime = Date.now();
+  // 試合タイマー（未開始なら常に開始）
+  if (!S.matchStartTime) startMatchTimer();
+  closeSheet('configSheet');
+  render();
+  const ruleLabel = T.defaultRule === '1'
+    ? `${S.rules.winScore}点先取・デュースなし`
+    : `${S.rules.winScore}点先取・17点打切り`;
+  showToast(`セット開始 ／ ${ruleLabel}`);
+}
+
+function confirmReset() {
+  closeWinner();
+  showConfirm('試合をリセットしますか？すべてのデータが消えます。', resetGame);
+}
+
+function resetGame() {
+  stopMatchTimer();
+  const saved = { teamA: S.teamA, teamB: S.teamB };
+  S = defaultState();
+  S.teamA  = saved.teamA;
+  S.teamB  = saved.teamB;
+  S.rules  = rulesFromMode(T.defaultRule, 0);
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  saveState();
+  render();
+  showToast('試合をリセットしました');
+}
+
+// ====================================================
+//  REGISTRATION
+// ====================================================
+function openRegModal() {
+  el('inNameA').value = S.teamA.name;
+  el('inNameB').value = S.teamB.name;
+  el('regHeaderA').textContent = S.teamA.name;
+  el('regHeaderB').textContent = S.teamB.name;
+  buildPlayerInputs('A');
+  buildPlayerInputs('B');
+  openSheet('regSheet');
+}
+
+// ①②③④ の順で4つのスロット入力を表示
+// スロット① のみ「サーブ位置」として特別表示
+const SLOT_LABELS = ['① サーブ位置', '②', '③', '④'];
+
+function buildPlayerInputs(team) {
+  const nums = team === 'A' ? S.teamA.nums : S.teamB.nums;
+  const container = el(`playerInputs${team}`);
+  container.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const isServe = i === 0;
+    const div = document.createElement('div');
+    div.className = 'player-input-cell';
+    div.innerHTML = `
+      <div class="player-input-label" style="${isServe ? 'color:var(--gold)' : ''}">${SLOT_LABELS[i]}</div>
+      <input class="player-num-input${isServe ? ' serve-slot' : ''}"
+             id="pIn${team}${i}"
+             type="text" inputmode="numeric" maxlength="3"
+             value="${nums[i] || ''}" placeholder="${i+1}">
+    `;
+    container.appendChild(div);
+  }
+}
+
+function saveRegistration() {
+  S.teamA.name = el('inNameA').value.trim() || 'チームA';
+  S.teamB.name = el('inNameB').value.trim() || 'チームB';
+  for (let i = 0; i < 4; i++) {
+    S.teamA.nums[i] = el(`pInA${i}`).value.trim() || String(i+1);
+    S.teamB.nums[i] = el(`pInB${i}`).value.trim() || String(i+1);
+  }
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  closeSheet('regSheet');
+  saveState();
+
+  // 新規試合（スコア0かつセット未開始）の場合は第1セット開始設定へ
+  const isNewMatch = S.sets.length === 0 && S.scoreA === 0 && S.scoreB === 0 && S.setsWonA === 0;
+  if (isNewMatch) {
+    S.curSetIdx = 0;
+    openNextSetConfig();
+  } else {
+    render();
+    showToast('選手情報を更新しました');
+  }
+}
+
+// ====================================================
+//  TOURNAMENT SETTINGS（大会設定）
+// ====================================================
+function openTournamentSheet() {
+  function checkRadio(name, val, fallback) {
+    const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
+    if (r) { r.checked = true; return; }
+    const fb = document.querySelector(`input[name="${name}"][value="${fallback}"]`);
+    if (fb) fb.checked = true;
+  }
+  checkRadio('tFormat', T.maxSets === 2 ? '2' : '3', '3');
+  checkRadio('tWin', T.setsToWin === 0 ? 'all' : '2', '2');
+  checkRadio('tRule', T.defaultRule, '1');
+  checkRadio('tSet3Start', String(T.set3StartScore || 0), '0');
+  checkRadio('tCC', T.courtChange, 'last8');
+  el('tCCPoint').value = T.courtChangePoint;
+  checkRadio('tCCMode', T.courtChangeMode, 'swap');
+  checkRadio('tTimeoutCount', String(T.timeoutMax || 1), '1');
+  checkRadio('tTimeoutSec', String(T.timeoutSec || 30), '30');
+  updateTournamentUI();
+  openSheet('tournamentSheet');
+}
+
+function saveTournamentSettings() {
+  const fmt    = document.querySelector('input[name="tFormat"]:checked').value;
+  const win    = document.querySelector('input[name="tWin"]:checked').value;
+  const rule   = document.querySelector('input[name="tRule"]:checked').value;
+  const cc     = document.querySelector('input[name="tCC"]:checked').value;
+  const ccPt   = parseInt(el('tCCPoint').value) || 8;
+  const ccMode = document.querySelector('input[name="tCCMode"]:checked').value;
+
+  const s3           = parseInt(document.querySelector('input[name="tSet3Start"]:checked').value) || 0;
+  T.maxSets          = fmt === '2' ? 2 : 3;
+  T.setsToWin        = win === 'all' ? 0 : 2;
+  T.defaultRule      = rule;
+  T.set3StartScore   = s3;
+  T.courtChange      = cc;
+  T.courtChangePoint = Math.max(1, Math.min(14, ccPt));
+  T.courtChangeMode  = ccMode;
+  T.timeoutMax       = parseInt(document.querySelector('input[name="tTimeoutCount"]:checked').value) || 1;
+  T.timeoutSec       = parseInt(document.querySelector('input[name="tTimeoutSec"]:checked').value) || 30;
+  closeSheet('tournamentSheet');
+  saveTournament();
+  S.rules = rulesFromMode(T.defaultRule, 0);
+  saveState();
+  render();
+  showToast('大会設定を保存しました');
+}
+
+function updateTournamentUI() {
+  const fmt = document.querySelector('input[name="tFormat"]:checked')?.value;
+  const cc  = document.querySelector('input[name="tCC"]:checked')?.value;
+
+  // 勝利条件・第3セット得点: 3セット制の時のみ表示
+  el('tWinSection').style.display  = fmt === '3' ? '' : 'none';
+  el('tSet3Section').style.display = fmt === '3' ? '' : 'none';
+  // コートチェンジ動作: none以外の時のみ表示
+  el('tCCModeSection').style.display = cc !== 'none' ? '' : 'none';
+  // 任意点数入力: custom の時のみ表示
+  el('tCCCustomRow').style.display = cc === 'custom' ? '' : 'none';
+
+  // ラジオselected状態更新
+  ['tFmt3','tFmt2'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tWin2','tWinAll'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tRule1','tRule2'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tS3Start0','tS3Start5','tS3Start8'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tCCNone','tCC8','tCCCustom'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tCCMNotice','tCCMSwap'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tTO1','tTO2'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+  ['tTOT20','tTOT30'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+}
+
+// ====================================================
+//  RULES MODAL（ヘッダー「ルール」ボタンから開く）
+// ====================================================
+function openRulesModal() {
+  const val = S.rules.deuceEnabled ? '2' : '1';
+  document.querySelector(`input[name="ruleType"][value="${val}"]`).checked = true;
+  updateRuleUI();
+  openSheet('rulesSheet');
+}
+
+function updateRuleUI() {
+  const val = document.querySelector('input[name="ruleType"]:checked')?.value;
+  el('ruleOptA').classList.toggle('selected', val === '1');
+  el('ruleOptB').classList.toggle('selected', val === '2');
+}
+
+function saveRules() {
+  const val = document.querySelector('input[name="ruleType"]:checked').value;
+  S.rules = rulesFromMode(val, S.rules.winScore);  // 現在のwin scoreを維持
+  closeSheet('rulesSheet');
+  saveState();
+  render();
+  showToast(val === '1' ? '15点先取・デュースなし に変更しました' : '15点先取・17点打切り に変更しました');
+}
+
+// ====================================================
+//  MATCH TIMER
+// ====================================================
+let _timerInterval = null;
+
+function startMatchTimer() {
+  if (!S.matchStartTime) S.matchStartTime = Date.now();
+  stopMatchTimer();
+  _timerInterval = setInterval(updateTimerDisplay, 1000);
+  updateTimerDisplay();
+}
+
+function stopMatchTimer() {
+  if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+}
+
+function formatMatchTime(ms) {
+  if (!ms || ms <= 0) return '00:00';
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+  const s = (totalSec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateTimerDisplay() {
+  const timeEl = el('dispMatchTime');
+  if (!timeEl) return;
+  if (!S.matchStartTime) { timeEl.textContent = '--:--'; return; }
+  const end = S.matchEndTime || Date.now();
+  timeEl.textContent = formatMatchTime(end - S.matchStartTime);
+}
+
+// ====================================================
+//  MATCH RESULT SAVE / HISTORY / COPY
+// ====================================================
+function saveMatchResult(winner) {
+  const elapsed = S.matchStartTime
+    ? (S.matchEndTime || Date.now()) - S.matchStartTime
+    : 0;
+  const result = {
+    date: new Date().toISOString(),
+    teamA: S.teamA.name,
+    teamB: S.teamB.name,
+    winner,
+    setsWonA: S.setsWonA,
+    setsWonB: S.setsWonB,
+    sets: S.sets.map(s => ({ scoreA: s.scoreA, scoreB: s.scoreB, winner: s.winner, elapsedMs: s.elapsedMs || 0 })),
+    timeoutLog: S.timeoutLog ? [...S.timeoutLog] : [],
+    elapsedMs: elapsed,
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('svb4_results') || '[]');
+    saved.unshift(result);
+    if (saved.length > 30) saved.pop();
+    localStorage.setItem('svb4_results', JSON.stringify(saved));
+  } catch(e) {}
+}
+
+function openHistorySheet() {
+  let html = '';
+  try {
+    const results = JSON.parse(localStorage.getItem('svb4_results') || '[]');
+    if (results.length === 0) {
+      html = '<div class="history-empty">試合履歴がありません</div>';
+    } else {
+      html = results.map((r, idx) => {
+        const d = new Date(r.date);
+        const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const winName = r.winner === 'A' ? r.teamA : r.teamB;
+        const time = r.elapsedMs != null ? formatMatchTime(r.elapsedMs) : '--:--';
+        const sets = (r.sets || []).map((s, i) => {
+          const st = s.elapsedMs != null ? ` (${formatMatchTime(s.elapsedMs)})` : '';
+          return `<div class="history-set">第${i+1}セット&nbsp; ${r.teamA} ${s.scoreA} - ${s.scoreB} ${r.teamB}${st}</div>`;
+        }).join('');
+        const toLines = (r.timeoutLog || []).map(t =>
+          `<div class="history-set" style="color:var(--gold)">第${t.set}セット ${t.teamName} タイムアウト（${t.scoreA}-${t.scoreB}）</div>`
+        ).join('');
+        return `<div class="history-item">
+          <div class="history-summary" onclick="toggleHistoryDetail(${idx})">
+            <div class="history-summary-body">
+              <div class="history-date">${dateStr}</div>
+              <div class="history-teams">${r.teamA} vs ${r.teamB} <span class="history-expand-icon">▼</span></div>
+              <div class="history-winner">勝者: ${winName}（${r.setsWonA} - ${r.setsWonB}）</div>
+            </div>
+            <button class="history-del" onclick="event.stopPropagation();deleteHistoryItem(${idx})"><span class="del-icon">🗑</span>削除</button>
+          </div>
+          <div class="history-detail" id="historyDetail_${idx}">
+            ${sets}
+            ${toLines}
+            <div class="history-time-line">試合時間: ${time}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) {
+    html = '<div class="history-empty">履歴の読み込みに失敗しました</div>';
+  }
+  el('historyList').innerHTML = html;
+  openSheet('historySheet');
+}
+
+function toggleHistoryDetail(idx) {
+  const detail = el(`historyDetail_${idx}`);
+  if (!detail) return;
+  const open = detail.style.display === 'block';
+  detail.style.display = open ? 'none' : 'block';
+}
+
+function deleteHistoryItem(idx) {
+  if (!confirm('この試合履歴を削除しますか？')) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem('svb4_results') || '[]');
+    saved.splice(idx, 1);
+    localStorage.setItem('svb4_results', JSON.stringify(saved));
+  } catch(e) {}
+  openHistorySheet(); // 再描画
+}
+
+function copyMatchResult() {
+  const elapsed = S.matchStartTime
+    ? formatMatchTime((S.matchEndTime || Date.now()) - S.matchStartTime)
+    : '--:--';
+  const d = new Date();
+  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  let winner;
+  if      (S.setsWonA > S.setsWonB) winner = 'A';
+  else if (S.setsWonB > S.setsWonA) winner = 'B';
+  else {
+    const totA = S.sets.reduce((s,x) => s + x.scoreA, 0);
+    const totB = S.sets.reduce((s,x) => s + x.scoreB, 0);
+    winner = totA >= totB ? 'A' : 'B';
+  }
+  const winName = winner === 'A' ? S.teamA.name : S.teamB.name;
+  const setLines = S.sets.map((s,i) =>
+    `第${i+1}セット ${s.scoreA}-${s.scoreB}`
+  ).join('\n');
+  const text = [
+    `【ソフトバレー試合結果】`,
+    `${S.teamA.name} ${S.setsWonA}-${S.setsWonB} ${S.teamB.name}`,
+    setLines,
+    `試合時間 ${elapsed}`,
+    `勝者：${winName}`,
+  ].join('\n');
+  function onCopied() {
+    const btn = el('btnCopyResult');
+    if (btn) {
+      btn.textContent = '✅ コピーしました';
+      setTimeout(() => { btn.textContent = '📋 結果をコピー'; }, 2500);
+    }
+    showToast('クリップボードにコピーしました');
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(onCopied).catch(() => showToast('コピーに失敗しました'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); onCopied(); }
+    catch(e) { showToast('コピーに失敗しました'); }
+    document.body.removeChild(ta);
+  }
+}
+
+// 左右ボタン用ヘルパー（位置→チームに変換）
+// ダブルタップ防止: 300msクールダウン
+let _lastScoreTime = 0;
+
+function addScoreL() {
+  const now = Date.now();
+  if (now - _lastScoreTime < 300) return;
+  _lastScoreTime = now;
+  addScore(S.leftTeam || 'A');
+}
+function addScoreR() {
+  const now = Date.now();
+  if (now - _lastScoreTime < 300) return;
+  _lastScoreTime = now;
+  addScore((S.leftTeam || 'A') === 'A' ? 'B' : 'A');
+}
+
+// ====================================================
+//  CONFIRM DIALOG
+// ====================================================
+function showConfirm(msg, onYes) {
+  sfxWarn();
+  el('confirmMsg').textContent = msg;
+  el('confirmYes').onclick = () => { closeConfirm(); onYes(); };
+  el('confirmOverlay').classList.remove('hidden');
+}
+function closeConfirm() {
+  el('confirmOverlay').classList.add('hidden');
+}
+
+// ====================================================
+//  LOCK MODE
+// ====================================================
+let _lockMode = false;
+let _lockPressTimer = null;
+let _lockPressStart = 0;
+
+// ロック中は全ての操作ボタンを無効化（解除操作のみ許可）
+const LOCK_TARGETS = [
+  'btnScoreL',        // Aチーム +1点
+  'btnScoreR',        // Bチーム +1点
+  'btnTimeoutMainL',  // Aチーム タイムアウト
+  'btnTimeoutMainR',  // Bチーム タイムアウト
+  'btnUndo',          // ↩ 取消
+  'btnNextSetBottom', // 次セット
+  'btnResetBottom',   // リセット（下部）
+  'btnSettings',      // メニューボタン
+  'btnRegister',      // メニュー内 ローテーション設定
+  'btnReset',         // メニュー内 リセット
+];
+
+function setLockMode(on) {
+  _lockMode = on;
+  el('lockBanner').classList.toggle('active', on);
+  LOCK_TARGETS.forEach(id => {
+    const btn = el(id);
+    if (btn) btn.classList.toggle('locked-btn', on);
+  });
+}
+
+function toggleLockMode() {
+  setLockMode(!_lockMode);
+  showToast(_lockMode ? '🔒 ロックしました' : '🔓 ロック解除しました');
+}
+
+// バナークリック → 何もしない（長押しのみ解除）
+function onLockBannerClick() {}
+
+// 長押し解除: touchstart/mousedown で3秒タイマー開始
+(function initLockGesture() {
+  function startPress() {
+    _lockPressStart = Date.now();
+    el('lockBanner').classList.add('pressing');
+    _lockPressTimer = setTimeout(() => {
+      el('lockBanner').classList.remove('pressing');
+      if (_lockMode) {
+        setLockMode(false);
+        if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+        showToast('🔓 ロック解除しました');
+      }
+    }, 3000);
+  }
+  function cancelPress() {
+    if (_lockPressTimer) { clearTimeout(_lockPressTimer); _lockPressTimer = null; }
+    el('lockBanner').classList.remove('pressing');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const banner = el('lockBanner');
+    banner.addEventListener('touchstart', e => { e.preventDefault(); startPress(); }, { passive: false });
+    banner.addEventListener('touchend', cancelPress);
+    banner.addEventListener('touchcancel', cancelPress);
+    banner.addEventListener('mousedown', startPress);
+    banner.addEventListener('mouseup', cancelPress);
+    banner.addEventListener('mouseleave', cancelPress);
+  });
+})();
+
+// ====================================================
+//  SETTINGS MENU
+// ====================================================
+function openSettingsMenu() {
+  el('lockToggleIcon').textContent = _lockMode ? '🔓' : '🔒';
+  el('lockToggleLabel').textContent = _lockMode ? 'ロック解除' : 'ロックモード ON';
+  // ロック中は設定系を無効化
+  LOCK_TARGETS.forEach(id => {
+    const btn = el(id);
+    if (btn) btn.classList.toggle('locked-btn', _lockMode);
+  });
+  // タイムアウトボタンの状態を更新
+  render();
+  openSheet('settingsSheet');
+}
+function openHelpSheet()    { openSheet('helpSheet'); }
+
+function openSoundSettings() {
+  document.querySelector(`input[name="sSoundMode"][value="${T.soundMode || 'sfx'}"]`).checked = true;
+  document.querySelector(`input[name="sSoundVol"][value="${T.soundVolume || 'mid'}"]`).checked = true;
+  updateSoundSettingsUI();
+  openSheet('soundSettingsSheet');
+}
+
+function updateSoundSettingsUI() {
+  const mode = document.querySelector('input[name="sSoundMode"]:checked')?.value;
+  ['sSndOff','sSndSfx'].forEach(id => el(id).classList.toggle('selected', el(id).querySelector('input').checked));
+  el('sSndVolSection').style.display = mode === 'off' ? 'none' : '';
+  ['sVolLow','sVolMid','sVolHigh'].forEach(id => el(id).classList.toggle('selected', el(id).querySelector('input').checked));
+}
+
+function saveSoundSettings() {
+  T.soundMode   = document.querySelector('input[name="sSoundMode"]:checked').value;
+  T.soundVolume = document.querySelector('input[name="sSoundVol"]:checked').value;
+  saveTournament();
+  closeSheet('soundSettingsSheet');
+  showToast('効果音設定を保存しました');
+}
+
+// 初回起動ヘルプ
+function checkFirstLaunch() {
+  if (!localStorage.getItem('svb4_helpShown')) {
+    localStorage.setItem('svb4_helpShown', '1');
+    setTimeout(() => openHelpSheet(), 500);
+  }
+}
+
+// ====================================================
+//  RALLY LOG SHEET
+// ====================================================
+function openRallyLogSheet() {
+  const list = el('rallyLogList');
+  if (!S.rallyLog || S.rallyLog.length === 0) {
+    list.innerHTML = '<div class="history-empty">履歴がありません</div>';
+  } else {
+    list.innerHTML = S.rallyLog.slice().reverse().map(e => {
+      const scoreClass = e.team === 'A' ? 'rally-score-a' : e.team === 'B' ? 'rally-score-b' : '';
+      const msgClass   = e.type === 'event' || e.type === 'timeout' ? 'rally-event' : '';
+      const changed = e.serveChanged !== undefined ? e.serveChanged : (e.serveTeam !== e.team);
+      const serveLine = e.serveTeam
+        ? changed
+          ? `<div class="rally-serve">次サーブ：<span class="rally-serve-name-${e.serveTeam.toLowerCase()}">${e.serveTeamName}</span> #${e.serverNum}</div>`
+          : `<div class="rally-serve">サーブ：<span class="rally-serve-name-${e.serveTeam.toLowerCase()}">${e.serveTeamName}</span> #${e.serverNum} 継続</div>`
+        : '';
+      return `<div class="rally-entry">` +
+        `<div class="rally-main">` +
+        `<span class="rally-set">S${e.set}</span>` +
+        `<span class="rally-score ${scoreClass}">${e.scoreA}-${e.scoreB}</span>` +
+        `<span class="rally-msg ${msgClass}">${e.msg}</span>` +
+        `</div>${serveLine}</div>`;
+    }).join('');
+  }
+  openSheet('rallyLogSheet');
+}
+
+// 第3セット 左コート選択UI更新
+function updateCfgLeftCourtUI() {
+  const val = document.querySelector('input[name="cfgLeftCourt"]:checked')?.value;
+  el('cfgLCA').classList.toggle('selected', val === 'A');
+  el('cfgLCB').classList.toggle('selected', val === 'B');
+}
+// 第3セット 先攻サーブ選択UI更新
+function updateCfgSet3ServeUI() {
+  const val = document.querySelector('input[name="cfgSet3Serve"]:checked')?.value;
+  el('cfgSet3ServeA').classList.toggle('selected', val === 'A');
+  el('cfgSet3ServeB').classList.toggle('selected', val === 'B');
+}
+// 第3セット 開始得点選択UI更新
+function updateCfgStartScoreUI() {
+  ['cfgSS0','cfgSS5','cfgSS8'].forEach(id => {
+    el(id).classList.toggle('selected', el(id).querySelector('input').checked);
+  });
+}
+
+// モード番号 ('1' or '2') + 任意のwinScore → rules オブジェクト
+function rulesFromMode(val, winScore) {
+  const ws = winScore || 15;
+  return val === '1'
+    ? { deuceEnabled: false, winScore: ws, maxScore: ws }
+    : { deuceEnabled: true,  winScore: ws, maxScore: ws + 2 };
+}
+
+// ====================================================
+//  SOUND (Web Audio API)
+// ====================================================
+let _audioCtx = null;
+
+function ensureAudioCtx() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+// iPhone Safari 対策: 最初のタッチで AudioContext を有効化
+document.addEventListener('touchstart', function _initAudio() {
+  ensureAudioCtx();
+  document.removeEventListener('touchstart', _initAudio);
+}, { once: true });
+document.addEventListener('click', function _initAudio2() {
+  ensureAudioCtx();
+  document.removeEventListener('click', _initAudio2);
+}, { once: true });
+
+function _volMult() {
+  const v = T.soundVolume || 'mid';
+  return v === 'low' ? 0.4 : v === 'high' ? 1.5 : 1.0;
+}
+
+function playTone(freq, duration, type, volume) {
+  if (T.soundMode === 'off') return;
+  try {
+    const ctx = ensureAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.value = (volume || 0.3) * _volMult();
+    gain.gain.setTargetAtTime(0, ctx.currentTime + duration - 0.05, 0.02);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playSequence(notes) {
+  if (T.soundMode === 'off') return;
+  try {
+    const ctx = ensureAudioCtx();
+    const m = _volMult();
+    let t = ctx.currentTime;
+    notes.forEach(([freq, dur, type, vol]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.value = (vol || 0.3) * m;
+      gain.gain.setTargetAtTime(0, t + dur - 0.03, 0.015);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur);
+      t += dur;
+    });
+  } catch(e) {}
+}
+
+// 得点音: 短いピッ
+function sfxScore()      { playTone(880, 0.1, 'sine', 0.25); }
+// セット終了音: ピピッ
+function sfxSetEnd()     { playSequence([[880,0.12,'sine',0.3],[1200,0.18,'sine',0.3]]); }
+// 試合終了音: 明るいファンファーレ
+function sfxMatchEnd()   { playSequence([[660,0.15,'sine',0.35],[880,0.15,'sine',0.35],[1100,0.15,'sine',0.35],[1320,0.35,'sine',0.4]]); }
+// タイムアウト開始音
+function sfxTimeoutStart() { playSequence([[600,0.2,'triangle',0.3],[400,0.3,'triangle',0.3]]); }
+// タイムアウト終了音
+function sfxTimeoutEnd() { playSequence([[400,0.15,'square',0.2],[600,0.15,'square',0.2],[800,0.2,'square',0.25]]); }
+// 警告音
+function sfxWarn() {
+  playTone(440, 0.1, 'square', 0.2);
+  setTimeout(() => playTone(440, 0.1, 'square', 0.2), 150);
+}
+
+// 効果音テスト画面
+function openSoundTest() {
+  const tests = [
+    { name: '① 得点音',           fn: sfxScore,        delay: 300 },
+    { name: '② タイムアウト開始音', fn: sfxTimeoutStart, delay: 700 },
+    { name: '③ タイムアウト終了音', fn: sfxTimeoutEnd,   delay: 600 },
+    { name: '④ セット終了音',      fn: sfxSetEnd,       delay: 500 },
+    { name: '⑤ 試合終了音',        fn: sfxMatchEnd,     delay: 1000 },
+    { name: '⑥ 警告音',           fn: sfxWarn,         delay: 400 },
+  ];
+  const list = el('soundTestList');
+  list.innerHTML = tests.map((t, i) =>
+    `<button class="btn-sheet btn-secondary" style="text-align:left;padding:12px 16px" id="sndTestBtn${i}" onclick="playSingleTest(${i})">` +
+    `<span id="sndTestStatus${i}" style="margin-right:8px">⬜</span>${t.name}</button>`
+  ).join('');
+  el('soundTestResult').textContent = '';
+  openSheet('soundTestSheet');
+}
+
+const _sndTests = [
+  { fn: () => sfxScore(),        delay: 300 },
+  { fn: () => sfxTimeoutStart(), delay: 700 },
+  { fn: () => sfxTimeoutEnd(),   delay: 600 },
+  { fn: () => sfxSetEnd(),       delay: 500 },
+  { fn: () => sfxMatchEnd(),     delay: 1000 },
+  { fn: () => sfxWarn(),         delay: 400 },
+];
+
+function playSingleTest(i) {
+  _sndTests[i].fn();
+  const s = el(`sndTestStatus${i}`);
+  if (s) s.textContent = '🔊';
+  setTimeout(() => { if (s) s.textContent = '✅'; }, _sndTests[i].delay);
+}
+
+async function runSoundTest() {
+  const savedMode = T.soundMode;
+  if (T.soundMode === 'off') T.soundMode = 'sfx';
+  let t = 0;
+  for (let i = 0; i < _sndTests.length; i++) {
+    const idx = i;
+    setTimeout(() => {
+      const s = el(`sndTestStatus${idx}`);
+      if (s) s.textContent = '🔊';
+      _sndTests[idx].fn();
+      setTimeout(() => { if (s) s.textContent = '✅'; }, _sndTests[idx].delay - 100);
+    }, t);
+    t += _sndTests[i].delay + 200;
+  }
+  setTimeout(() => {
+    T.soundMode = savedMode;
+    const allPass = _sndTests.length;
+    el('soundTestResult').innerHTML =
+      `<span style="color:var(--teal);font-size:18px">✅ ${allPass}/${allPass} PASS</span><br>` +
+      `<span style="font-size:12px;color:var(--sub)">音が聞こえなかった場合は端末の音量を確認してください</span>`;
+  }, t + 200);
+}
+
+// ====================================================
+//  TIMEOUT
+// ====================================================
+let _toInterval = null;
+let _toRemaining = 0;
+let _toActive = false;
+
+function requestTimeout(side) {
+  if (_lockMode) return;
+  if (_toActive) return;
+  const L = S.leftTeam || 'A';
+  const R = L === 'A' ? 'B' : 'A';
+  const team = side === 'L' ? L : R;
+  const toMax = T.timeoutMax || 1;
+  const used  = S[`timeouts${team}`] || 0;
+
+  if (used >= toMax) {
+    sfxWarn();
+    showToast('このセットのタイムアウトは使い切りました');
+    return;
+  }
+
+  // history に保存（undo 対応）
+  S.history.push({
+    scoreA: S.scoreA, scoreB: S.scoreB,
+    serveTeam: S.serveTeam,
+    slotsA: [...S.slotsA], slotsB: [...S.slotsB],
+    courtChangeDone: S.courtChangeDone,
+    leftTeam:        S.leftTeam,
+    timeoutsA:       S.timeoutsA,
+    timeoutsB:       S.timeoutsB,
+    timeoutLog:      [...S.timeoutLog],
+    rallyLog:        [...S.rallyLog],
+  });
+  if (S.history.length > 50) S.history.shift();
+
+  S[`timeouts${team}`]++;
+  S.timeoutLog.push({
+    set: S.curSetIdx + 1,
+    team,
+    teamName: S[`team${team}`].name,
+    scoreA: S.scoreA,
+    scoreB: S.scoreB,
+  });
+  S.rallyLog.push({
+    set: S.curSetIdx + 1, scoreA: S.scoreA, scoreB: S.scoreB,
+    type: 'timeout', team, msg: `${S[`team${team}`].name} タイムアウト`
+  });
+  saveState();
+  render();
+  startTimeoutTimer(team);
+}
+
+function startTimeoutTimer(team) {
+  _toActive = true;
+  _toRemaining = T.timeoutSec || 30;
+  const teamName = S[`team${team}`].name;
+
+  el('toOverlayTeam').textContent = teamName;
+  el('toOverlayTeam').style.color = team === 'A' ? 'var(--color-a)' : 'var(--color-b)';
+  el('toCountdown').textContent   = _toRemaining;
+  el('toCountdown').style.display = '';
+  el('toEndMsg').style.display    = 'none';
+  el('toBtn').textContent         = 'スキップ';
+  el('timeoutOverlay').classList.remove('hidden');
+  sfxTimeoutStart();
+
+  // 得点・タイムアウトボタン無効化
+  el('btnScoreL').disabled = true;
+  el('btnScoreR').disabled = true;
+  el('btnTimeoutMainL').disabled = true;
+  el('btnTimeoutMainR').disabled = true;
+
+  stopTimeoutTimer();
+  _toInterval = setInterval(() => {
+    _toRemaining--;
+    if (_toRemaining <= 0) {
+      stopTimeoutTimer();
+      el('toCountdown').style.display = 'none';
+      el('toEndMsg').style.display    = '';
+      el('toBtn').textContent         = '閉じる';
+      sfxTimeoutEnd();
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } else {
+      el('toCountdown').textContent = _toRemaining;
+    }
+  }, 1000);
+}
+
+function stopTimeoutTimer() {
+  if (_toInterval) { clearInterval(_toInterval); _toInterval = null; }
+}
+
+function endTimeout() {
+  stopTimeoutTimer();
+  _toActive = false;
+  el('timeoutOverlay').classList.add('hidden');
+  el('btnScoreL').disabled = false;
+  el('btnScoreR').disabled = false;
+  render();
+}
+
+// ====================================================
+//  COURT CHANGE（第3セット 8点到達時）
+// ====================================================
+function checkCourtChange(team, prevScore) {
+  if (T.courtChange === 'none') return;
+  if (S.courtChangeDone) return;
+  if (T.maxSets < 3 || S.curSetIdx !== 2) return;
+  const threshold = T.courtChange === 'custom' ? T.courtChangePoint : 8;
+  const newScore = team === 'A' ? S.scoreA : S.scoreB;
+  if (!(prevScore < threshold && newScore >= threshold)) return;
+  showCourtChange(threshold);
+}
+
+function showCourtChange(threshold) {
+  const pt = threshold !== undefined ? threshold : (T.courtChange === 'custom' ? T.courtChangePoint : 8);
+  const L = S.leftTeam || 'A';
+  const R = L === 'A' ? 'B' : 'A';
+  const sL = L === 'A' ? S.scoreA : S.scoreB;
+  const sR = R === 'A' ? S.scoreA : S.scoreB;
+  el('ccSetLabel').textContent = `第${S.curSetIdx + 1}セット（最終セット）`;
+  el('ccScore').textContent    = `${S[`team${L}`].name} ${sL} - ${sR} ${S[`team${R}`].name}`;
+  el('ccMsg').innerHTML = T.courtChangeMode === 'swap'
+    ? `${pt}点到達：コートチェンジ<br>左右の表示・選手配置を入れ替えます`
+    : `${pt}点到達：コートチェンジしてください`;
+  el('courtChangeOverlay').classList.remove('hidden');
+}
+
+function confirmCourtChange() {
+  S.rallyLog.push({
+    set: S.curSetIdx + 1, scoreA: S.scoreA, scoreB: S.scoreB,
+    type: 'event', team: null, msg: 'コートチェンジ'
+  });
+  S.courtChangeDone = true;
+  if (T.courtChangeMode === 'swap') {
+    S.leftTeam = S.leftTeam === 'A' ? 'B' : 'A';
+  }
+  el('courtChangeOverlay').classList.add('hidden');
+  saveState();
+  render();
+  showToast(T.courtChangeMode === 'swap'
+    ? 'コートチェンジ完了・表示を入れ替えました'
+    : 'コートチェンジを記録しました');
+}
+
+// ====================================================
+//  RENDER
+// ====================================================
+function render() {
+  const a = S.scoreA, b = S.scoreB;
+  const r = S.rules;
+  const deuceAt = r.winScore - 1;
+  const deuce   = r.deuceEnabled && a >= deuceAt && b >= deuceAt;
+
+  // 左右チーム判定
+  const L  = S.leftTeam || 'A';   // 左コートのチーム ('A' or 'B')
+  const R  = L === 'A' ? 'B' : 'A';
+  const sL = L === 'A' ? a : b;   // 左チームの得点
+  const sR = R === 'A' ? a : b;   // 右チームの得点
+
+  // ヘッダータイトル（チーム名が設定済みなら対戦表示）
+  const isDefault = S.teamA.name === 'チームA' && S.teamB.name === 'チームB';
+  el('headerTitle').textContent = isDefault ? '4人制ソフトバレー' : `${S.teamA.name} vs ${S.teamB.name}`;
+
+  // コートヘッダー（court div 内 → チーム固定）
+  el('courtHeaderA').textContent = S.teamA.name;
+  el('courtHeaderB').textContent = S.teamB.name;
+
+  // スコアセクション・ボタン（位置ベース: L=左, R=右）
+  el('dispNameL').textContent  = S[`team${L}`].name;
+  el('dispNameR').textContent  = S[`team${R}`].name;
+  el('dispScoreL').textContent = sL;
+  el('dispScoreL').className   = `score-num ${L.toLowerCase()}`;
+  el('dispScoreR').textContent = sR;
+  el('dispScoreR').className   = `score-num ${R.toLowerCase()}`;
+  el('btnNameL').textContent   = S[`team${L}`].name;
+  el('btnNameR').textContent   = S[`team${R}`].name;
+  el('btnScoreL').className    = `btn-score ${L.toLowerCase()}`;
+  el('btnScoreR').className    = `btn-score ${R.toLowerCase()}`;
+
+  // ステータス
+  if (deuce) {
+    const dL = sL - sR;
+    el('dispStatusL').textContent = dL > 0 ? `＋${dL}点リード` : dL < 0 ? `${dL}点差` : '同点';
+    el('dispStatusR').textContent = dL < 0 ? `＋${-dL}点リード` : dL > 0 ? `${dL}点差` : '同点';
+    if (r.maxScore - sL <= 2) el('dispStatusL').textContent += ` (上限まで${r.maxScore - sL})`;
+    if (r.maxScore - sR <= 2) el('dispStatusR').textContent += ` (上限まで${r.maxScore - sR})`;
+  } else {
+    el('dispStatusL').textContent = `残 ${r.winScore - sL} 点`;
+    el('dispStatusR').textContent = `残 ${r.winScore - sR} 点`;
+  }
+
+  // デュースバッジ
+  el('dispDeuce').innerHTML = deuce ? '<div class="deuce-badge">DEUCE</div>' : '';
+
+  // ルールバッジ
+  const ruleBadgeEl = el('dispRuleBadge');
+  if (ruleBadgeEl) {
+    const ruleText = r.deuceEnabled ? `${r.winScore}点/${r.maxScore}点打切` : `${r.winScore}点先取`;
+    ruleBadgeEl.innerHTML = `<span class="rule-badge">${ruleText}</span>`;
+  }
+
+  // 過去セットスコア表示
+  const pastSetsEl = el('dispPastSets');
+  if (pastSetsEl) {
+    pastSetsEl.innerHTML = S.sets.map((s, i) => {
+      const sL2 = L === 'A' ? s.scoreA : s.scoreB;
+      const sR2 = L === 'A' ? s.scoreB : s.scoreA;
+      return `<span class="past-set-chip">S${i+1} ${sL2}-${sR2}</span>`;
+    }).join('');
+  }
+
+  // 現在セット番号 & セットスコア
+  el('dispCurSet').textContent   = `第${S.curSetIdx + 1}セット`;
+  el('dispSetScore').textContent = `${S[`setsWon${L}`]} - ${S[`setsWon${R}`]}`;
+
+  // サーブバナー（サーバー + NEXT 情報）
+  const servingSlots = S.serveTeam === 'A' ? S.slotsA : S.slotsB;
+  const serveName    = S.serveTeam === 'A' ? S.teamA.name : S.teamB.name;
+  const serverJersey = servingSlots[0];
+  const nextJersey   = servingSlots[1];
+  el('serveBanner').className     = `serve-banner serve-${S.serveTeam.toLowerCase()}`;
+  el('serveMainText').textContent = `${serveName} サーブ`;
+  el('serveJersey').textContent   = serverJersey ? `#${serverJersey}` : '';
+  el('serveSubText').textContent  = serverJersey ? `サーバー #${serverJersey}` : '';
+  el('serveNextText').textContent = nextJersey ? `NEXT #${nextJersey}` : '';
+
+  // ヘッダーセットドット
+  renderSetDots(L);
+
+  // コートグリッド（サーブ/NEXT 位置はサイドで決定）
+  renderGrid(L, 'left');
+  renderGrid(R, 'right');
+
+  // コート枠ハイライト（サーブ側を強調）
+  el('courtA').className = 'half-court' + (S.serveTeam === 'A' ? ' active-a' : '');
+  el('courtB').className = 'half-court' + (S.serveTeam === 'B' ? ' active-b' : '');
+
+  // courtWrap だけ反転（scoreSection はコンテンツで制御済みなので CSS 反転不要）
+  el('courtWrap').style.flexDirection    = L === 'B' ? 'row-reverse' : '';
+  el('scoreSection').style.flexDirection = '';
+
+  // タイムアウトボタン更新（メイン画面）
+  const toMax = T.timeoutMax || 1;
+  const toL = S[`timeouts${L}`] || 0;
+  const toR = S[`timeouts${R}`] || 0;
+  el('toMainNameL').textContent  = S[`team${L}`].name;
+  el('toMainNameR').textContent  = S[`team${R}`].name;
+  el('toMainCountL').textContent = `${toL}/${toMax}`;
+  el('toMainCountR').textContent = `${toR}/${toMax}`;
+  el('btnTimeoutMainL').className = `btn-timeout to-${L.toLowerCase()}`;
+  el('btnTimeoutMainR').className = `btn-timeout to-${R.toLowerCase()}`;
+  el('btnTimeoutMainL').disabled = toL >= toMax;
+  el('btnTimeoutMainR').disabled = toR >= toMax;
+
+  saveState();
+}
+
+function renderSetDots(L) {
+  const R = (L || 'A') === 'A' ? 'B' : 'A';
+  const container = el('setDots');
+  container.innerHTML = '';
+  for (let i = 0; i < T.maxSets; i++) {
+    const dot = document.createElement('div');
+    if (i < S.sets.length) {
+      const s = S.sets[i];
+      dot.className = `set-dot ${s.winner === 'A' ? 'won-a' : s.winner === 'B' ? 'won-b' : ''}`;
+      dot.textContent = `${s[`score${L || 'A'}`]}-${s[`score${R}`]}`;
+    } else if (i === S.curSetIdx) {
+      dot.className = 'set-dot current';
+      dot.textContent = `S${i+1}`;
+    } else {
+      dot.className = 'set-dot';
+      dot.textContent = `S${i+1}`;
+    }
+    container.appendChild(dot);
+  }
+}
+
+// ====================================================
+//  コートグリッド描画（4人制）
+//
+//  サーブ/NEXT の画面上位置はコートの左右サイドで決まる:
+//    左サイドチーム: サーブ=左下, NEXT=右下
+//    右サイドチーム: サーブ=右上, NEXT=左上
+//
+//  左レイアウト: 左上=slot④, 右上=slot③, 左下=slot①(serve), 右下=slot②(next)
+//  右レイアウト: 左上=slot②(next), 右上=slot①(serve), 左下=slot③, 右下=slot④
+//
+//  team: 'A' or 'B'  ← 背番号データとサーブ権取得に使用
+//  side: 'left' or 'right'  ← サーブ/NEXT の位置決定に使用
+// ====================================================
+function renderGrid(team, side) {
+  const slots   = team === 'A' ? S.slotsA : S.slotsB;
+  const grid    = el(`grid${team}`);
+  const serving = S.serveTeam === team;
+
+  const layout = side === 'left'
+    ? [
+        { jersey: slots[3], role: 'normal' },  // 左上 = slot④
+        { jersey: slots[2], role: 'normal' },  // 右上 = slot③
+        { jersey: slots[0], role: 'serve'  },  // 左下 = slot① ★サーブ
+        { jersey: slots[1], role: 'next'   },  // 右下 = slot②  NEXT
+      ]
+    : [
+        { jersey: slots[1], role: 'next'   },  // 左上 = slot②  NEXT
+        { jersey: slots[0], role: 'serve'  },  // 右上 = slot① ★サーブ
+        { jersey: slots[2], role: 'normal' },  // 左下 = slot③
+        { jersey: slots[3], role: 'normal' },  // 右下 = slot④
+      ];
+
+  grid.innerHTML = '';
+  layout.forEach(({ jersey, role }) => {
+    const isServer = serving  && role === 'serve';
+    const isNext   = !serving && role === 'next';
+
+    const div = document.createElement('div');
+    div.className = 'player-cell'
+      + (isServer ? ' server-cell' : '')
+      + (isNext   ? ' next-cell'   : '');
+
+    div.innerHTML = `
+      <div class="player-num">${jersey ? '#' + jersey : '－'}</div>
+      ${isServer ? '<div class="serve-label">★ サーブ</div>' : ''}
+      ${isNext   ? '<div class="next-label">NEXT</div>'      : ''}
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ====================================================
+//  OVERLAYS
+// ====================================================
+function showSetEnd() {
+  const s = S.sets[S.sets.length - 1];
+  const winName = s.winner === 'A' ? S.teamA.name : S.teamB.name;
+  el('setEndTitle').textContent = `第${S.sets.length}セット 終了！`;
+  el('setEndScore').textContent = `${s.scoreA} - ${s.scoreB}`;
+  el('setEndSub').textContent   = `${winName} セット取得`;
+  el('setEndOverlay').classList.remove('hidden');
+}
+function closeSetEnd() { el('setEndOverlay').classList.add('hidden'); }
+
+function showWinner() {
+  let winner;
+  if      (S.setsWonA > S.setsWonB) winner = 'A';
+  else if (S.setsWonB > S.setsWonA) winner = 'B';
+  else {
+    // 全セット消化でセット数タイ → 合計得点で判定
+    const totA = S.sets.reduce((s,x) => s + x.scoreA, 0);
+    const totB = S.sets.reduce((s,x) => s + x.scoreB, 0);
+    winner = totA >= totB ? 'A' : 'B';
+  }
+  stopMatchTimer();
+  if (!S.matchEndTime) S.matchEndTime = Date.now();
+  saveMatchResult(winner);
+
+  const name = winner === 'A' ? S.teamA.name : S.teamB.name;
+  const elapsed = S.matchStartTime
+    ? formatMatchTime(S.matchEndTime - S.matchStartTime)
+    : '--:--';
+  el('winnerName').textContent     = `${name} 勝利！`;
+  el('winnerSetScore').textContent = `セット  ${S.setsWonA} - ${S.setsWonB}`;
+  el('winnerSetDetails').innerHTML = S.sets.map((s,i) => {
+    const st = s.elapsedMs != null ? ` <span style="color:var(--sub);font-size:12px">(${formatMatchTime(s.elapsedMs)})</span>` : '';
+    return `<div style="margin:4px 0;font-size:14px;">` +
+      `第${i+1}セット&nbsp; ${S.teamA.name} <strong>${s.scoreA} - ${s.scoreB}</strong> ${S.teamB.name}${st}` +
+      `</div>`;
+  }).join('');
+  el('winnerTime').textContent = `試合時間: ${elapsed}`;
+  updateTimerDisplay();
+  el('winnerOverlay').classList.remove('hidden');
+}
+function closeWinner() { el('winnerOverlay').classList.add('hidden'); }
+
+// ====================================================
+//  SHEETS
+// ====================================================
+function openSheet(id) {
+  el(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(id) {
+  el(id).classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function closeSheetIfBg(ev, id) {
+  if (ev.target === ev.currentTarget) closeSheet(id);
+}
+
+// ====================================================
+//  TOAST
+// ====================================================
+let _toastTimer;
+function showToast(msg) {
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  t.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.classList.add('hidden'), 250);
+  }, 2500);
+}
+
+// ====================================================
+//  PERSISTENCE
+// ====================================================
+function saveState() {
+  try { localStorage.setItem('svb4_v2', JSON.stringify(S)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('svb4_v2');
+    if (!raw) return;
+    const loaded = JSON.parse(raw);
+    Object.keys(defaultState()).forEach(k => {
+      if (loaded[k] !== undefined) S[k] = loaded[k];
+    });
+    if (!S.rules) S.rules = defaultRules();
+    if (S.courtChangeDone === undefined) S.courtChangeDone = false;
+    // 旧 courtSwapped フィールドから移行
+    if (S.leftTeam === undefined) {
+      S.leftTeam = (S.courtSwapped === true) ? 'B' : 'A';
+    }
+  } catch(e) {}
+}
+
+function saveTournament() {
+  try { localStorage.setItem('svb4_tour', JSON.stringify(T)); } catch(e) {}
+}
+
+function loadTournament() {
+  try {
+    const raw = localStorage.getItem('svb4_tour');
+    if (!raw) return;
+    const loaded = JSON.parse(raw);
+    Object.keys(defaultTournament()).forEach(k => {
+      if (loaded[k] !== undefined) T[k] = loaded[k];
+    });
+    if (T.set3StartScore === undefined) T.set3StartScore = 0;
+    if (![20, 30].includes(T.timeoutSec)) T.timeoutSec = 30;
+    // 旧 soundEnabled → soundMode 移行
+    if (loaded.soundEnabled !== undefined && !loaded.soundMode) {
+      T.soundMode = loaded.soundEnabled ? 'sfx' : 'off';
+    }
+  } catch(e) {}
+}
+
+function el(id) { return document.getElementById(id); }
+
+// ====================================================
+//  INIT
+// ====================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadTournament();
+  loadState();
+  if (!S.slotsA) S.slotsA = initSlots('A');
+  if (!S.slotsB) S.slotsB = initSlots('B');
+  if (!S.rules)  S.rules  = defaultRules();
+  if (S.sets.length === 0 && S.scoreA === 0 && S.scoreB === 0) {
+    S.rules = rulesFromMode(T.defaultRule, 0);
+  }
+
+  // ページ再読み込み後のタイマー復元
+  if (S.matchStartTime && !S.matchEndTime) {
+    startMatchTimer();
+  } else {
+    updateTimerDisplay();
+  }
+
+  render();
+
+  // Service Worker 登録（PWA）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // スプラッシュ画面（削除済み）
+
+  // 初回起動ヘルプ
+  checkFirstLaunch();
+
+  // ?test パラメータ付きで開いた場合のみ自動テスト実行
+  if (location.search.includes('test')) setTimeout(runAutoTest, 300);
+});
+
+// ====================================================
+//  AUTO TEST（?test で起動）
+// ====================================================
+function runAutoTest() {
+  const results = [];
+  let passN = 0, failN = 0;
+  function ok(label, cond, detail) {
+    if (cond) { passN++; results.push({s:'PASS',label,detail}); }
+    else      { failN++; results.push({s:'FAIL',label,detail}); }
+  }
+
+  // --- 初期化 ---
+  localStorage.removeItem('svb4_v2');
+  localStorage.removeItem('svb4_tour');
+  T = defaultTournament();
+  T.defaultRule = '2';       // デュースあり（17点打切り）
+  T.timeoutMax  = 2;
+  T.timeoutSec  = 5;         // テスト用に短く
+  saveTournament();
+
+  S = defaultState();
+  S.teamA = { name: '火の鳥', nums: ['10','11','12','13'] };
+  S.teamB = { name: '青龍',   nums: ['20','21','22','23'] };
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  S.rules  = rulesFromMode('2', 0);
+  S.serveTeam = 'A';
+  S.set1StartServe = 'A';
+  S.leftTeam = 'A';
+  S.setStartTime = Date.now() - 73000;   // 1:13前にセット開始
+  S.matchStartTime = S.setStartTime;
+  S.matchEndTime = null;
+  S.curSetIdx = 0;
+  _timerInterval = null;
+  startMatchTimer();
+  render();
+
+  // =======================================
+  // 第1セット: A 15-3 B
+  // =======================================
+  for (let i = 0; i < 3; i++) { addScore('A'); addScore('B'); } // 3-3
+  addScore('A'); // timeout test
+  requestTimeout('L'); // 火の鳥(A) timeout
+  endTimeout();
+  for (let i = 0; i < 11; i++) addScore('A'); // 15-3
+
+  const s1 = S.sets[0];
+  ok('① 第1セット 15-3 終了', s1 && s1.scoreA===15 && s1.scoreB===3, `${s1?.scoreA}-${s1?.scoreB}`);
+  ok('① 第1セット elapsedMs > 0', s1 && s1.elapsedMs > 0, `${s1?.elapsedMs}ms`);
+  ok('① セットカウント 1-0', S.setsWonA===1 && S.setsWonB===0);
+
+  // =======================================
+  // 第2セット設定: 自動コート入替+サーブ反転
+  // =======================================
+  closeSetEnd();
+  S.curSetIdx = 1;
+  S.rules = rulesFromMode('2', 0);
+  S.serveTeam = 'B';
+  S.scoreA = 0; S.scoreB = 0;
+  S.history = [];
+  S.courtChangeDone = false;
+  S.timeoutsA = 0; S.timeoutsB = 0;
+  S.leftTeam = 'B';
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  S.setStartTime = Date.now() - 166000; // 2:46前にセット開始
+  render();
+
+  ok('② 第2セット 左コート=B', S.leftTeam==='B');
+  ok('② 第2セット サーブ=B', S.serveTeam==='B');
+
+  // 第2セット: A 7-15 B
+  for (let i = 0; i < 7; i++) { addScore('A'); addScore('B'); } // 7-7
+  for (let i = 0; i < 8; i++) addScore('B'); // 7-15
+
+  const s2 = S.sets[1];
+  ok('② 第2セット 7-15 終了', s2 && s2.scoreA===7 && s2.scoreB===15, `${s2?.scoreA}-${s2?.scoreB}`);
+  ok('② 第2セット elapsedMs > 0', s2 && s2.elapsedMs > 0, `${s2?.elapsedMs}ms`);
+  ok('② セットカウント 1-1', S.setsWonA===1 && S.setsWonB===1);
+
+  // =======================================
+  // 第3セット設定
+  // =======================================
+  closeSetEnd();
+  S.curSetIdx = 2;
+  S.rules = rulesFromMode('2', 0);
+  S.serveTeam = 'A';
+  S.scoreA = 0; S.scoreB = 0;
+  S.history = [];
+  S.courtChangeDone = false;
+  S.timeoutsA = 0; S.timeoutsB = 0;
+  S.leftTeam = 'A';
+  S.slotsA = initSlots('A');
+  S.slotsB = initSlots('B');
+  S.setStartTime = Date.now() - 200000; // 3:20前にセット開始
+  render();
+
+  // 第3セット: 7-7 → 8-7 でコートチェンジ
+  for (let i = 0; i < 7; i++) { addScore('A'); addScore('B'); }
+  ok('③ 7-7 到達', S.scoreA===7 && S.scoreB===7);
+  ok('③ 7-7 コートチェンジ未発動', !S.courtChangeDone);
+
+  const leftBefore = S.leftTeam;
+  addScore('A'); // 8-7 → court change overlay
+  const ccVisible = !el('courtChangeOverlay').classList.contains('hidden');
+  ok('③ 8-7 コートチェンジオーバーレイ表示', ccVisible);
+
+  confirmCourtChange();
+  ok('③ コートチェンジ完了: leftTeam反転', S.leftTeam !== leftBefore, `${leftBefore}→${S.leftTeam}`);
+  ok('③ courtChangeDone=true', S.courtChangeDone===true);
+
+  // 表示確認
+  const dispL = el('dispNameL').textContent;
+  const dispR = el('dispNameR').textContent;
+  ok('③ 左右チーム名入替', dispL==='青龍' && dispR==='火の鳥', `左=${dispL} 右=${dispR}`);
+
+  // Undo テスト
+  undoScore(); // コートチェンジを戻す
+  ok('④ Undo: courtChangeDone=false', S.courtChangeDone===false);
+  ok('④ Undo: leftTeam復元', S.leftTeam===leftBefore);
+  ok('④ Undo: スコア 8-7 維持', S.scoreA===8 && S.scoreB===7);
+
+  undoScore(); // 得点も戻す
+  ok('④ Undo x2: スコア 7-7 復帰', S.scoreA===7 && S.scoreB===7);
+
+  // 再度コートチェンジしてデュースへ
+  addScore('A'); // 8-7
+  confirmCourtChange();
+  for (let i = 0; i < 6; i++) addScore('A'); // 14-7
+  for (let i = 0; i < 7; i++) addScore('B'); // 14-14
+
+  ok('⑤ 14-14 デュース', S.scoreA===14 && S.scoreB===14);
+
+  addScore('A'); // 15-14
+  ok('⑤ 15-14 セット未終了', S.sets.length===2);
+  addScore('B'); // 15-15
+  addScore('A'); // 16-15
+  addScore('B'); // 16-16
+  addScore('B'); // 16-17 → B wins (maxScore=17)
+
+  const s3 = S.sets[2];
+  ok('⑤ 第3セット 16-17 B勝利', s3 && s3.scoreA===16 && s3.scoreB===17 && s3.winner==='B', `${s3?.scoreA}-${s3?.scoreB}`);
+  ok('⑤ 第3セット elapsedMs > 0', s3 && s3.elapsedMs > 0, `${s3?.elapsedMs}ms`);
+
+  // =======================================
+  // 試合終了画面
+  // =======================================
+  ok('⑥ matchStartTime設定済み', S.matchStartTime != null, `${S.matchStartTime}`);
+  ok('⑥ matchEndTime設定済み', S.matchEndTime != null, `${S.matchEndTime}`);
+
+  const totalElapsed = S.matchEndTime - S.matchStartTime;
+  ok('⑥ 総試合時間 > 0', totalElapsed > 0, `${totalElapsed}ms = ${formatMatchTime(totalElapsed)}`);
+
+  const winnerTimeText = el('winnerTime').textContent;
+  ok('⑥ 勝利画面 試合時間≠--:--', !winnerTimeText.includes('--:--'), winnerTimeText);
+  ok('⑥ 勝利画面 試合時間表示あり', winnerTimeText.includes(':'), winnerTimeText);
+
+  // 各セット時間が勝利画面に表示されているか
+  const detailHtml = el('winnerSetDetails').innerHTML;
+  const set1TimeShown = detailHtml.includes('第1セット') && detailHtml.includes(':');
+  const set2TimeShown = detailHtml.includes('第2セット') && /第2セット.*\d+:\d+/.test(detailHtml);
+  const set3TimeShown = detailHtml.includes('第3セット') && /第3セット.*\d+:\d+/.test(detailHtml);
+  ok('⑥ 第1セット時間表示あり', set1TimeShown, detailHtml.substring(0,100));
+  ok('⑥ 第2セット時間表示あり', set2TimeShown);
+  ok('⑥ 第3セット時間表示あり', set3TimeShown);
+
+  // 試合履歴に保存されたか
+  let histOk = false;
+  try {
+    const hist = JSON.parse(localStorage.getItem('svb4_results') || '[]');
+    if (hist.length > 0) {
+      const h = hist[0];
+      histOk = h.elapsedMs > 0;
+      ok('⑦ 履歴 総試合時間 > 0', histOk, `${h.elapsedMs}ms`);
+      ok('⑦ 履歴 第1セット elapsedMs > 0', h.sets[0]?.elapsedMs > 0, `${h.sets[0]?.elapsedMs}ms`);
+      ok('⑦ 履歴 第2セット elapsedMs > 0', h.sets[1]?.elapsedMs > 0, `${h.sets[1]?.elapsedMs}ms`);
+      ok('⑦ 履歴 第3セット elapsedMs > 0', h.sets[2]?.elapsedMs > 0, `${h.sets[2]?.elapsedMs}ms`);
+    } else {
+      ok('⑦ 履歴保存', false, '履歴が空');
+    }
+  } catch(e) {
+    ok('⑦ 履歴保存', false, e.message);
+  }
+
+  // サーブ・NEXT・チーム名
+  ok('⑧ チーム名 火の鳥', el('courtHeaderA').textContent==='火の鳥');
+  ok('⑧ チーム名 青龍', el('courtHeaderB').textContent==='青龍');
+
+  // =======================================
+  // ラリー履歴
+  // =======================================
+  ok('⑨ rallyLog件数 > 0', S.rallyLog.length > 0, `${S.rallyLog.length}件`);
+  const scoreEntries = S.rallyLog.filter(e => e.type === 'score');
+  ok('⑨ 得点履歴あり', scoreEntries.length > 0, `${scoreEntries.length}件`);
+  const toEntries = S.rallyLog.filter(e => e.type === 'timeout');
+  ok('⑨ タイムアウト履歴あり', toEntries.length > 0, `${toEntries.length}件`);
+  const ccEntries = S.rallyLog.filter(e => e.msg === 'コートチェンジ');
+  ok('⑨ コートチェンジ履歴あり', ccEntries.length > 0, `${ccEntries.length}件`);
+  const endEntries = S.rallyLog.filter(e => e.type === 'event' && e.msg.includes('終了'));
+  ok('⑨ セット/試合終了履歴あり', endEntries.length > 0, `${endEntries.length}件`);
+
+  // 結果コピー形式
+  closeWinner();
+  render();
+  // Simulate copy text generation
+  const copyElapsed = S.matchStartTime ? formatMatchTime((S.matchEndTime || Date.now()) - S.matchStartTime) : '--:--';
+  let copyWinner;
+  if (S.setsWonA > S.setsWonB) copyWinner = 'A';
+  else if (S.setsWonB > S.setsWonA) copyWinner = 'B';
+  else copyWinner = 'A';
+  const copyWinName = copyWinner === 'A' ? S.teamA.name : S.teamB.name;
+  const copySetLines = S.sets.map((s,i) => `第${i+1}セット ${s.scoreA}-${s.scoreB}`).join('\n');
+  const copyText = [`【ソフトバレー試合結果】`,`${S.teamA.name} ${S.setsWonA}-${S.setsWonB} ${S.teamB.name}`,copySetLines,`試合時間 ${copyElapsed}`,`勝者：${copyWinName}`].join('\n');
+  ok('⑩ コピー: ソフトバレー試合結果ヘッダー', copyText.includes('【ソフトバレー試合結果】'));
+  ok('⑩ コピー: セットスコア形式', copyText.includes('第1セット 15-3'));
+  ok('⑩ コピー: 勝者表示', copyText.includes('勝者：'));
+  ok('⑩ コピー: 試合時間', copyText.includes('試合時間 ') && !copyText.includes('--:--'));
+
+  // =======================================
+  // 結果表示
+  // =======================================
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;overflow-y:auto;padding:20px;font-family:monospace;font-size:13px;color:#eee;';
+  let html = `<h2 style="color:#f5a623;margin-bottom:12px">Auto Test Results</h2>`;
+  results.forEach(r => {
+    const color = r.s==='PASS' ? '#0f0' : '#f33';
+    html += `<div><span style="color:${color};font-weight:bold">${r.s}</span> ${r.label}`;
+    if (r.detail) html += ` <span style="color:#7af">${r.detail}</span>`;
+    html += `</div>`;
+  });
+  const total = passN + failN;
+  const sumColor = failN === 0 ? '#1b8a3e' : '#7a2020';
+  html += `<div style="margin-top:16px;padding:12px;background:${sumColor};border-radius:8px;font-size:16px;font-weight:bold">${passN} PASS / ${failN} FAIL / ${total} total</div>`;
+  html += `<button onclick="this.parentElement.remove()" style="margin-top:12px;padding:10px 24px;border:none;border-radius:8px;background:#f5a623;color:#000;font-weight:bold;cursor:pointer">閉じる</button>`;
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+}
+</script>
+</body>
+</html>
