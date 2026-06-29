@@ -1,4 +1,4 @@
-const CACHE_NAME = 'svb4-v6-icons-20260629';
+const CACHE_NAME = 'svb4-v7-portrait-20260629';
 const ASSETS = [
   './soft-volleyball-score.html',
   './manifest.json?v=20260629',

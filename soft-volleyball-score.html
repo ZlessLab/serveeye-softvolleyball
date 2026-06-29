@@ -80,6 +80,50 @@
       .btn-score { padding: 16px 8px; font-size: 17px; }
     }
 
+    /* スマホ横向き時も、縦画面相当のキャンバス幅・高さで表示を維持する */
+    @media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 560px) {
+      html {
+        min-height: 100dvw;
+        overflow-x: hidden;
+        background: var(--bg);
+      }
+
+      body {
+        width: min(430px, 100dvh);
+        max-width: min(430px, 100dvh);
+        min-height: 100dvw;
+        height: auto;
+        margin: 0 auto;
+        overflow-x: hidden;
+      }
+
+      .score-num { font-size: 68px !important; }
+      .player-num { font-size: 30px !important; }
+      .player-cell { min-height: 54px; }
+      .serve-label, .next-label { font-size: 12px; }
+      .btn-score { padding: 14px 6px; font-size: 16px; min-height: 48px; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 375px) {
+      .score-num { font-size: 56px !important; }
+      .player-num { font-size: 22px !important; }
+      .player-cell { min-height: 40px; }
+      .btn-score { padding: 10px 4px; font-size: 14px; min-height: 40px; }
+      .btn-undo { flex: 0 0 50px; padding: 10px 2px; font-size: 12px; min-height: 40px; }
+      .btn-timeout { padding: 6px 4px; font-size: 11px; min-height: 32px; }
+      .header-title { font-size: 10px; }
+      .set-dot { width: 26px; height: 26px; font-size: 8px; }
+      .btn-action { padding: 8px 2px; font-size: 10px; min-height: 36px; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (orientation: landscape) and (min-height: 414px) and (max-height: 560px) {
+      .score-num { font-size: 76px !important; }
+      .player-num { font-size: 30px !important; }
+      .player-cell { min-height: 50px; }
+      .serve-label, .next-label { font-size: 13px; }
+      .btn-score { padding: 16px 8px; font-size: 17px; }
+    }
+
     /* ========== HEADER ========== */
     .header {
       background: var(--card);
@@ -2908,7 +2952,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Service Worker 登録（PWA）
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-      .register('./sw.js?v=20260629-icons', { updateViaCache: 'none' })
+      .register('./sw.js?v=20260629-portrait', { updateViaCache: 'none' })
       .then(registration => registration.update())
       .catch(() => {});
   }
