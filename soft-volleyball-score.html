@@ -6,8 +6,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d1520">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json?v=20260629">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=20260629">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons-generated/icon-16.png?v=20260629">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=20260629">
+  <link rel="apple-touch-icon" sizes="152x152" href="icons-generated/apple-touch-icon-152x152.png?v=20260629">
+  <link rel="apple-touch-icon" sizes="120x120" href="icons-generated/apple-touch-icon-120x120.png?v=20260629">
+  <link rel="apple-touch-icon" sizes="76x76" href="icons-generated/apple-touch-icon-76x76.png?v=20260629">
   <title>ソフトバレー 得点管理（4人制）</title>
   <style>
     :root {
@@ -2902,7 +2907,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Service Worker 登録（PWA）
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker
+      .register('./sw.js?v=20260629-icons', { updateViaCache: 'none' })
+      .then(registration => registration.update())
+      .catch(() => {});
   }
 
   // スプラッシュ画面（削除済み）

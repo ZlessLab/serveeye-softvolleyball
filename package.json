@@ -1,0 +1,10 @@
+{
+  "name": "serveeye",
+  "version": "1.0.0",
+  "description": "4人制ソフトバレーボール得点管理アプリ",
+  "scripts": {
+    "build": "node --check server.js && node --check sw.js",
+    "start": "node server.js"
+  },
+  "private": true
+}
