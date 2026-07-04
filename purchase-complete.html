@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>購入完了 — ServeEye</title>
+  <meta name="robots" content="noindex">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1520; --card: #162030; --card2: #1e2d40;
+      --border: #2a3d55; --text: #e8f0fe; --sub: #7a90a8;
+      --green: #1b8a3e; --gold: #f5a623; --teal: #00cc88;
+    }
+    html, body {
+      background: var(--bg); color: var(--text); min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.7; -webkit-text-size-adjust: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    a { color: var(--teal); text-decoration: none; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 36px 28px; max-width: 420px; width: 100%; text-align: center;
+    }
+    .icon { font-size: 72px; margin-bottom: 16px; }
+    h1 { font-size: 24px; font-weight: 900; margin-bottom: 10px; color: var(--teal); }
+    .subtitle { font-size: 15px; color: var(--sub); margin-bottom: 28px; line-height: 1.7; }
+
+    .steps-box {
+      background: var(--card2); border-radius: 12px; padding: 20px;
+      margin-bottom: 24px; text-align: left;
+    }
+    .steps-title {
+      font-size: 12px; font-weight: 700; color: var(--sub);
+      letter-spacing: 1px; margin-bottom: 14px; text-transform: uppercase;
+    }
+    .step-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+    .step-item:last-child { margin-bottom: 0; }
+    .step-badge {
+      flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--green); color: #fff; font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-text { font-size: 14px; line-height: 1.6; }
+    .step-text strong { color: var(--text); display: block; }
+    .step-text span { color: var(--sub); font-size: 13px; }
+
+    .warn-box {
+      background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.35);
+      border-radius: 10px; padding: 14px 16px;
+      font-size: 13px; color: var(--gold); margin-bottom: 24px; text-align: left;
+    }
+
+    .btn-open {
+      display: block; background: var(--green); color: #fff;
+      font-size: 17px; font-weight: 900; padding: 18px; border-radius: 12px;
+      text-decoration: none; margin-bottom: 12px; transition: opacity 0.15s;
+    }
+    .btn-open:hover { opacity: 0.88; }
+    .btn-top {
+      display: block; font-size: 14px; color: var(--sub); padding: 10px;
+    }
+    .btn-top:hover { color: var(--text); }
+
+    .support-note {
+      margin-top: 28px; font-size: 13px; color: var(--sub);
+      border-top: 1px solid var(--border); padding-top: 18px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="icon">🎉</div>
+  <h1>ご購入ありがとうございます！</h1>
+  <p class="subtitle">
+    決済が完了しました。<br>
+    まもなく認証コードをメールでお送りします。
+  </p>
+
+  <div class="steps-box">
+    <div class="steps-title">次のステップ</div>
+    <div class="step-item">
+      <div class="step-badge">1</div>
+      <div class="step-text">
+        <strong>メールをご確認ください</strong>
+        <span>「【ServeEye】ライセンスコードのお知らせ」というメールが届きます（通常数分以内）。迷惑メールフォルダもご確認ください。</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-badge">2</div>
+      <div class="step-text">
+        <strong>ServeEyeを開く</strong>
+        <span>下のボタンからアプリを開き、認証画面にメールアドレスと認証コードを入力してください。</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-badge">3</div>
+      <div class="step-text">
+        <strong>ホーム画面に追加（任意）</strong>
+        <span>iOSは「共有 → ホーム画面に追加」、Androidは「インストール」でアプリのように使えます。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    ⚠ メールが届かない場合は、迷惑メールフォルダをご確認ください。<br>
+    5分以上経っても届かない場合は <a href="mailto:【要入力：メールアドレス】">【要入力：メールアドレス】</a> までご連絡ください。
+  </div>
+
+  <a class="btn-open" href="/serveeye">ServeEyeを開く →</a>
+  <a class="btn-top" href="/">トップページへ戻る</a>
+
+  <div class="support-note">
+    お問い合わせは <a href="mailto:【要入力：メールアドレス】">【要入力：メールアドレス】</a> まで。<br>
+    通常2営業日以内にご返答します。
+  </div>
+</div>
+
+</body>
+</html>

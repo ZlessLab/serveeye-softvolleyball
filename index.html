@@ -1,4 +1,501 @@
 <!DOCTYPE html>
-<html><head>
-<meta http-equiv="refresh" content="0;url=soft-volleyball-score.html">
-</head></html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ServeEye — 4人制ソフトバレーボールのローテーション・得点・タイムアウトをスマホ1台で管理。買い切り1,980円。">
+  <meta name="theme-color" content="#0d1520">
+  <title>ServeEye — 4人制ソフトバレー 得点管理アプリ</title>
+
+  <!-- OGP（SNSシェア用） -->
+  <meta property="og:title" content="ServeEye — 4人制ソフトバレー 得点管理アプリ">
+  <meta property="og:description" content="ローテーション・タイムアウト・試合履歴をスマホ1台で管理。買い切り1,980円。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://【要入力：ドメイン】/">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1520; --card: #162030; --card2: #1e2d40;
+      --border: #2a3d55; --text: #e8f0fe; --sub: #7a90a8;
+      --green: #1b8a3e; --gold: #f5a623; --teal: #00cc88;
+      --color-a: #e53935; --color-b: #1565c0;
+    }
+    html { scroll-behavior: smooth; }
+    html, body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.7; -webkit-text-size-adjust: 100%;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ===== NAV ===== */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,21,32,0.95); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: var(--text); }
+    .nav-logo span { color: var(--teal); }
+    .nav-cta {
+      background: var(--green); color: #fff; font-size: 14px; font-weight: 700;
+      padding: 9px 20px; border-radius: 20px; white-space: nowrap;
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* ===== HERO ===== */
+    .hero {
+      padding: 60px 20px 50px;
+      text-align: center; max-width: 600px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(0,204,136,0.15);
+      border: 1px solid rgba(0,204,136,0.4); color: var(--teal);
+      font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px;
+      letter-spacing: 1px; margin-bottom: 22px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 6vw, 38px); font-weight: 900; line-height: 1.3;
+      margin-bottom: 16px; letter-spacing: -0.5px;
+    }
+    .hero h1 em { color: var(--teal); font-style: normal; }
+    .hero p {
+      font-size: 16px; color: var(--sub); margin-bottom: 32px; line-height: 1.8;
+    }
+    .hero-btns { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .btn-buy {
+      display: block; background: var(--green); color: #fff;
+      font-size: 18px; font-weight: 900; padding: 18px 40px; border-radius: 14px;
+      width: 100%; max-width: 340px; text-align: center; text-decoration: none;
+      transition: opacity 0.15s; letter-spacing: 0.5px;
+    }
+    .btn-buy:hover { opacity: 0.88; }
+    .btn-buy-sub { font-size: 12px; font-weight: 400; opacity: 0.8; display: block; margin-top: 4px; }
+    .btn-demo {
+      display: block; background: none; color: var(--sub);
+      font-size: 14px; padding: 8px; text-decoration: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .btn-demo:hover { color: var(--text); }
+
+    /* ===== APP MOCKUP ===== */
+    .mockup-section { padding: 20px 20px 40px; }
+    .mockup-wrap {
+      max-width: 360px; margin: 0 auto;
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      overflow: hidden;
+    }
+    .mockup-bar {
+      background: var(--card); padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mockup-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+    .mockup-inner { padding: 16px; }
+    .mock-serve {
+      background: linear-gradient(135deg, var(--color-a), #c62828);
+      padding: 10px 16px; border-radius: 10px; margin-bottom: 12px;
+      font-size: 15px; font-weight: 900; color: #fff;
+    }
+    .mock-scores {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .mock-team {
+      flex: 1; background: var(--card2); border-radius: 10px; padding: 12px;
+      text-align: center;
+    }
+    .mock-team-name { font-size: 11px; color: var(--sub); font-weight: 700; margin-bottom: 4px; }
+    .mock-score-num { font-size: 44px; font-weight: 900; line-height: 1; }
+    .mock-score-num.a { color: var(--color-a); }
+    .mock-score-num.b { color: var(--color-b); }
+    .mock-set-mid {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--sub); font-weight: 700; padding: 0 4px;
+    }
+    .mock-grid {
+      display: grid; grid-template-columns: 1fr 8px 1fr; gap: 6px; margin-bottom: 10px;
+    }
+    .mock-court {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px; display: grid;
+      grid-template-columns: 1fr 1fr; gap: 4px;
+    }
+    .mock-court.active-a { border-color: var(--color-a); }
+    .mock-player {
+      background: rgba(255,255,255,0.05); border-radius: 6px;
+      padding: 6px; text-align: center; font-size: 14px; font-weight: 900;
+    }
+    .mock-player.serve { background: rgba(245,166,35,0.25); border: 1px solid var(--gold); color: var(--gold); }
+    .mock-net { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    .mock-btns { display: flex; gap: 6px; }
+    .mock-btn-a {
+      flex: 1; background: var(--color-a); color: #fff;
+      padding: 12px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 800;
+    }
+    .mock-btn-b {
+      flex: 1; background: var(--color-b); color: #fff;
+      padding: 12px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 800;
+    }
+
+    /* ===== SECTION COMMON ===== */
+    section { padding: 60px 20px; }
+    section:nth-child(even) { background: var(--card); }
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--teal); letter-spacing: 2px;
+      text-align: center; margin-bottom: 8px; text-transform: uppercase;
+    }
+    .section-title {
+      font-size: clamp(20px, 5vw, 28px); font-weight: 900; text-align: center;
+      margin-bottom: 10px;
+    }
+    .section-sub { text-align: center; color: var(--sub); font-size: 14px; margin-bottom: 40px; }
+
+    /* ===== FEATURES ===== */
+    .features-grid {
+      max-width: 680px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--card2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px;
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 10px; }
+    .feature-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+    .feature-desc { font-size: 13px; color: var(--sub); line-height: 1.6; }
+
+    /* ===== HOW TO USE ===== */
+    .steps { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+      background: var(--card2); border-radius: 14px; padding: 20px;
+    }
+    .step-num {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: var(--green); color: #fff; font-size: 18px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .step-desc { font-size: 13px; color: var(--sub); }
+
+    /* ===== PRICING ===== */
+    .pricing-card {
+      max-width: 400px; margin: 0 auto;
+      background: var(--card2); border: 2px solid var(--teal); border-radius: 20px;
+      padding: 32px 28px; text-align: center;
+    }
+    .plan-name { font-size: 13px; font-weight: 700; color: var(--teal); letter-spacing: 2px; margin-bottom: 16px; }
+    .plan-price { font-size: 52px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+    .plan-tax { font-size: 13px; color: var(--sub); margin-bottom: 24px; }
+    .plan-features { text-align: left; margin-bottom: 28px; }
+    .plan-feature {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .plan-feature:last-child { border-bottom: none; }
+    .check { color: var(--teal); font-weight: 900; flex-shrink: 0; }
+    .btn-buy-card {
+      display: block; background: var(--green); color: #fff;
+      font-size: 18px; font-weight: 900; padding: 18px; border-radius: 12px;
+      text-decoration: none; transition: opacity 0.15s;
+    }
+    .btn-buy-card:hover { opacity: 0.88; }
+    .plan-note { font-size: 12px; color: var(--sub); margin-top: 14px; }
+    .already-purchased {
+      text-align: center; margin-top: 20px; font-size: 14px;
+    }
+    .already-purchased a { color: var(--sub); border-bottom: 1px solid var(--border); }
+
+    /* ===== FAQ ===== */
+    .faq-list { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; }
+    details {
+      background: var(--card2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    details + details { margin-top: 6px; }
+    summary {
+      padding: 18px 20px; font-size: 15px; font-weight: 700; cursor: pointer;
+      list-style: none; display: flex; align-items: center; justify-content: space-between;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '＋'; color: var(--teal); font-size: 18px; flex-shrink: 0; }
+    details[open] summary::after { content: '－'; }
+    .faq-answer {
+      padding: 0 20px 18px; font-size: 14px; color: var(--sub); line-height: 1.8;
+      border-top: 1px solid var(--border); padding-top: 14px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--card); border-top: 1px solid var(--border);
+      padding: 40px 20px; text-align: center;
+    }
+    .footer-logo { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin-bottom: 20px; }
+    .footer-logo span { color: var(--teal); }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; margin-bottom: 20px; }
+    .footer-links a { font-size: 13px; color: var(--sub); }
+    .footer-links a:hover { color: var(--text); }
+    .copyright { font-size: 12px; color: var(--sub); }
+
+    @media (min-width: 600px) {
+      .hero-btns { flex-direction: row; justify-content: center; }
+      .btn-buy { width: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <div class="nav-logo">Serve<span>Eye</span></div>
+  <a class="nav-cta" href="#" data-checkout onclick="startCheckout(event)">今すぐ購入</a>
+</nav>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-badge">🏐 4人制ソフトバレーボール専用</div>
+  <h1>試合の記録を、<br><em>もっとスムーズに。</em></h1>
+  <p>ローテーション管理からタイムアウトまで。<br>スコア記録のすべてをスマホ1台で。</p>
+  <div class="hero-btns">
+    <a class="btn-buy" href="#" data-checkout onclick="startCheckout(event)">
+      購入する — 1,980円（税込）
+      <span class="btn-buy-sub">買い切り・永続利用・最大2端末</span>
+    </a>
+    <a class="btn-demo" href="/soft-volleyball-score.html">アプリを見る →</a>
+  </div>
+</div>
+
+<!-- ===== APP MOCKUP ===== -->
+<div class="mockup-section">
+  <div class="mockup-wrap">
+    <div class="mockup-bar">
+      <div class="mockup-dot"></div>
+      <div class="mockup-dot"></div>
+      <div class="mockup-dot"></div>
+    </div>
+    <div class="mockup-inner">
+      <div class="mock-serve">▶ チームA サーブ　#10　NEXT #11</div>
+      <div class="mock-scores">
+        <div class="mock-team">
+          <div class="mock-team-name">チームA</div>
+          <div class="mock-score-num a">8</div>
+        </div>
+        <div class="mock-set-mid">
+          <div style="font-size:9px;color:var(--sub)">S1</div>
+          <div style="font-size:14px;font-weight:800">0-0</div>
+          <div style="font-size:9px;color:var(--sub)">SET</div>
+        </div>
+        <div class="mock-team">
+          <div class="mock-team-name">チームB</div>
+          <div class="mock-score-num b">6</div>
+        </div>
+      </div>
+      <div class="mock-grid">
+        <div class="mock-court active-a">
+          <div class="mock-player" style="color:var(--sub)">#13</div>
+          <div class="mock-player" style="color:var(--sub)">#12</div>
+          <div class="mock-player serve">#10 ★</div>
+          <div class="mock-player" style="color:#64b5f6;border:1px solid rgba(100,181,246,0.5)">#11</div>
+        </div>
+        <div class="mock-net"></div>
+        <div class="mock-court">
+          <div class="mock-player" style="color:var(--sub)">#21</div>
+          <div class="mock-player" style="color:var(--sub)">#20</div>
+          <div class="mock-player" style="color:var(--sub)">#22</div>
+          <div class="mock-player" style="color:var(--sub)">#23</div>
+        </div>
+      </div>
+      <div class="mock-btns">
+        <div class="mock-btn-a">チームA ＋１点</div>
+        <div class="mock-btn-b">チームB ＋１点</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<section id="features">
+  <p class="section-label">Features</p>
+  <h2 class="section-title">スコア管理に必要なすべてが揃っています</h2>
+  <p class="section-sub">大会から練習試合まで、4人制ソフトバレーのあらゆる場面で使えます</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-title">ローテーション自動管理</div>
+      <div class="feature-desc">①→②→③→④→① の順番を自動追跡。サーブ権取得時のみ回転し、次のサーバーを常に表示します。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏐</div>
+      <div class="feature-title">大会設定対応</div>
+      <div class="feature-desc">3セット制・2セット制、デュースなし・17点打切りに対応。第3セットの開始得点（0-0 / 5-5 / 8-8）も設定可能。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏱</div>
+      <div class="feature-title">タイムアウト管理</div>
+      <div class="feature-desc">カウントダウンタイマー付き。1セットあたりの使用回数を管理し、残り回数を常に表示します。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">試合履歴の自動保存</div>
+      <div class="feature-desc">セットスコア・試合時間・タイムアウトを自動記録。過去30試合分を端末に保存し、結果をコピーしてLINEで共有できます。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">↩</div>
+      <div class="feature-title">ミス修正（取消）機能</div>
+      <div class="feature-desc">誤ったボタン操作は「取消」ボタンで即座に元に戻せます。ローテーション・タイムアウトごと復元します。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📶</div>
+      <div class="feature-title">オフライン対応</div>
+      <div class="feature-desc">一度認証すれば最大72時間はWi-Fiなしで利用可能。体育館のネット環境に依存しません。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW TO USE ===== -->
+<section id="how">
+  <p class="section-label">How to Use</p>
+  <h2 class="section-title">3ステップで始められます</h2>
+  <p class="section-sub">アプリのインストールは不要。スマホのブラウザだけで動きます。</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">購入してコードを受け取る</div>
+        <div class="step-desc">Stripeの決済ページでクレジットカード情報を入力。購入完了後、メールアドレスに認証コードが届きます。</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">ServeEyeで認証する</div>
+        <div class="step-desc">ServeEyeを開いて、購入時のメールアドレスと認証コードを入力するだけ。最大2台の端末に登録できます。</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">ホーム画面に追加する（任意）</div>
+        <div class="step-desc">iOSのSafariで「ホーム画面に追加」、AndroidのChromeで「アプリとしてインストール」するとアプリのように使えます。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-title">シンプルな1プラン</h2>
+  <p class="section-sub">サブスクなし。一度購入すれば、ずっと使えます。</p>
+
+  <div class="pricing-card">
+    <div class="plan-name">個人ライセンス</div>
+    <div class="plan-price">1,980<span style="font-size:22px">円</span></div>
+    <div class="plan-tax">税込・買い切り</div>
+    <div id="campaign-remaining" style="display:none; color:var(--gold); font-size:13px; font-weight:700; margin-bottom:12px;"></div>
+
+    <div class="plan-features">
+      <div class="plan-feature"><span class="check">✓</span> 利用者1名</div>
+      <div class="plan-feature"><span class="check">✓</span> 最大2端末まで登録可能</div>
+      <div class="plan-feature"><span class="check">✓</span> 有効期限なし（永続利用）</div>
+      <div class="plan-feature"><span class="check">✓</span> 全機能を使用可能</div>
+      <div class="plan-feature"><span class="check">✓</span> アップデートが無料で適用</div>
+      <div class="plan-feature"><span class="check">✓</span> iOS Safari / Android Chrome 対応</div>
+    </div>
+
+    <a class="btn-buy-card" href="#" data-checkout onclick="startCheckout(event)">購入する</a>
+    <p class="plan-note">クレジットカード決済（Visa / Mastercard / American Express / JCB）<br>購入完了後、メールにて認証コードをお送りします。</p>
+  </div>
+
+  <div class="already-purchased">
+    <p>すでにご購入済みの方は <a href="/soft-volleyball-score.html">こちら</a> からアプリを開いてください。</p>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-title">よくある質問</h2>
+  <p class="section-sub"></p>
+
+  <div class="faq-list">
+    <details>
+      <summary>アプリのインストールは必要ですか？</summary>
+      <div class="faq-answer">インストールは不要です。iOS Safari・Android Chromeなどのスマートフォンのブラウザで動作します。<br>「ホーム画面に追加（PWA）」をすると、アプリのようにアイコンから起動できます。</div>
+    </details>
+    <details>
+      <summary>1つのライセンスで何台使えますか？</summary>
+      <div class="faq-answer">個人ライセンスは購入者ご本人のみ、最大2台の端末まで登録できます。スマートフォンとタブレットを併用する場合などに使えます。<br>3台目の登録は技術的にブロックされます。</div>
+    </details>
+    <details>
+      <summary>チームの記録係が使う場合、全員分購入が必要ですか？</summary>
+      <div class="faq-answer">はい、ライセンスは購入者ご本人のみ利用できます。チームの複数名が使う場合は、それぞれが購入する必要があります。<br>認証コードの共有・貸与は利用規約で禁止されており、発覚した場合はライセンスを停止することがあります。</div>
+    </details>
+    <details>
+      <summary>オフライン（体育館でWi-Fiなし）でも使えますか？</summary>
+      <div class="faq-answer">はい、認証済みの端末であれば最大72時間はインターネット接続なしで使えます。認証から72時間以上経過した場合は、次回オンライン時に自動で再認証されます。</div>
+    </details>
+    <details>
+      <summary>機種変更したら端末の登録はどうなりますか？</summary>
+      <div class="faq-answer">アプリの設定メニューから「この端末の認証を解除」を行い、新しい端末で再ログインしてください。<br>旧端末で解除できない場合はサポートまでご連絡ください。</div>
+    </details>
+    <details>
+      <summary>返金はできますか？</summary>
+      <div class="faq-answer">購入日から7日以内、かつ認証コードを一度もご使用でない場合に限り、返金対応をご検討いたします。<br>ご希望の場合は <a href="mailto:【要入力：メールアドレス】">【要入力：メールアドレス】</a> までご連絡ください。</div>
+    </details>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-logo">Serve<span>Eye</span></div>
+  <div class="footer-links">
+    <a href="/legal/privacy.html">プライバシーポリシー</a>
+    <a href="/legal/terms.html">利用規約</a>
+    <a href="/legal/tokushoho.html">特定商取引法に基づく表記</a>
+    <a href="mailto:【要入力：メールアドレス】">お問い合わせ</a>
+  </div>
+  <div class="copyright">© 2026 Zless. All rights reserved.</div>
+</footer>
+
+<script>
+  async function startCheckout(e) {
+    e.preventDefault();
+    const btns = document.querySelectorAll('[data-checkout]');
+    btns.forEach(el => { el.style.opacity = '0.6'; el.style.pointerEvents = 'none'; });
+    try {
+      const res = await fetch('/api/checkout/session', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else if (res.status === 409) {
+        alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
+      } else {
+        alert('エラーが発生しました。しばらくしてから再度お試しください。');
+      }
+    } catch {
+      alert('通信エラーが発生しました。しばらくしてから再度お試しください。');
+    } finally {
+      btns.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
+    }
+  }
+
+  (async function loadCampaignStatus() {
+    try {
+      const res = await fetch('/api/campaign/status');
+      if (!res.ok) return;
+      const data = await res.json();
+      const el = document.getElementById('campaign-remaining');
+      if (el && data.remaining !== null) {
+        el.textContent = `残り ${data.remaining} 本（先着100本限定）`;
+        el.style.display = 'block';
+      }
+    } catch {}
+  })();
+</script>
+</body>
+</html>

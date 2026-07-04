@@ -1,3 +1,6 @@
 node_modules/
 backup/
 serveeye-icon-final.jpg
+.env
+.env.local
+.env.*.local

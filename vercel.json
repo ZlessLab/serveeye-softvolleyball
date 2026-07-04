@@ -1,18 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "*.html", "use": "@vercel/static" },
-    { "src": "*.png",  "use": "@vercel/static" },
-    { "src": "icons-generated/*.png", "use": "@vercel/static" },
-    { "src": "manifest.json", "use": "@vercel/static" },
-    { "src": "sw.js",  "use": "@vercel/static" }
-  ],
   "routes": [
-    { "src": "/", "dest": "/soft-volleyball-score.html" }
+    { "src": "/",         "dest": "/index.html" },
+    { "src": "/serveeye", "dest": "/soft-volleyball-score.html" }
   ],
   "headers": [
     {
-      "source": "/(soft-volleyball-score.html|manifest.json|sw.js|apple-touch-icon.png|favicon.png|icon-192.png|icon-512.png)",
+      "source": "/(soft-volleyball-score.html|index.html|purchase-complete.html|manifest.json|sw.js|apple-touch-icon.png|favicon.png|icon-192.png|icon-512.png)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/legal/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]

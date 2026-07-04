@@ -2,7 +2,7 @@
   "name": "ソフトバレー得点管理",
   "short_name": "バレー得点",
   "description": "4人制ソフトバレーボール得点管理アプリ",
-  "start_url": "./soft-volleyball-score.html",
+  "start_url": "/serveeye",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d1520",
