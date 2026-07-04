@@ -1232,6 +1232,10 @@
       </button>
     </div>
 
+    <!-- ライセンス -->
+    <div class="section-head">ライセンス</div>
+    <div id="licenseSection" style="margin-bottom:8px;"></div>
+
     <div style="text-align:center;font-size:11px;color:var(--sub);margin-top:4px;margin-bottom:8px;">
       ソフトバレー得点管理 Ver 1.0.0<br>
       <span style="font-size:10px">&copy; 2026 Zless</span>
@@ -2241,11 +2245,43 @@ function openSettingsMenu() {
     const btn = el(id);
     if (btn) btn.classList.toggle('locked-btn', _lockMode);
   });
+  renderLicenseSection();
   // タイムアウトボタンの状態を更新
   render();
   openSheet('settingsSheet');
 }
 function openHelpSheet()    { openSheet('helpSheet'); }
+
+function renderLicenseSection() {
+  const sec = document.getElementById('licenseSection');
+  if (!sec) return;
+  const licensed = !!localStorage.getItem('svb4_license');
+  if (licensed) {
+    sec.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(0,204,136,0.1);border:1px solid rgba(0,204,136,0.3);border-radius:10px;font-size:14px;font-weight:700;color:#00cc88;">✓ 購入済み</div>';
+  } else {
+    sec.innerHTML = '<button class="btn-sheet btn-primary" style="width:100%;padding:14px;" onclick="startCheckoutFromApp()">🛒 購入する — 1,980円（税込）</button><p style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px;">先着100本限定価格・買い切り・最大2端末</p>';
+  }
+}
+
+async function startCheckoutFromApp() {
+  const btn = document.querySelector('#licenseSection button');
+  if (btn) { btn.disabled = true; btn.textContent = '処理中...'; }
+  try {
+    const res = await fetch('/api/checkout/session', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+    } else if (res.status === 409) {
+      alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
+    } else {
+      alert('エラーが発生しました。しばらくしてから再度お試しください。');
+    }
+  } catch {
+    alert('通信エラーが発生しました。しばらくしてから再度お試しください。');
+  } finally {
+    renderLicenseSection();
+  }
+}
 
 function openSoundSettings() {
   document.querySelector(`input[name="sSoundMode"][value="${T.soundMode || 'sfx'}"]`).checked = true;
