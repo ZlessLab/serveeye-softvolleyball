@@ -1,6 +1,7 @@
 {
   "version": 2,
   "builds": [
+    { "src": "api/health.js",              "use": "@vercel/node" },
     { "src": "api/checkout/session.js",    "use": "@vercel/node" },
     { "src": "api/campaign/status.js",     "use": "@vercel/node" },
     { "src": "index.html",                 "use": "@vercel/static" },
@@ -13,6 +14,7 @@
     { "src": "sw.js",                      "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/serveeye", "dest": "/soft-volleyball-score.html" },
     { "src": "^/$",       "dest": "/index.html" }
   ],

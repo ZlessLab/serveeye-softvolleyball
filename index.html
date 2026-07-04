@@ -467,18 +467,32 @@
     e.preventDefault();
     const btns = document.querySelectorAll('[data-checkout]');
     btns.forEach(el => { el.style.opacity = '0.6'; el.style.pointerEvents = 'none'; });
+    let res;
     try {
-      const res = await fetch('/api/checkout/session', { method: 'POST' });
-      const data = await res.json();
+      res = await fetch('/api/checkout/session', { method: 'POST' });
+    } catch (networkErr) {
+      console.error('[checkout] fetch failed:', networkErr);
+      alert('ネットワークエラー: ' + networkErr.message);
+      btns.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
+      return;
+    }
+    let body;
+    try {
+      body = await res.text();
+      console.log('[checkout] status:', res.status, 'body:', body);
+      const data = JSON.parse(body);
       if (res.ok && data.url) {
         window.location.href = data.url;
-      } else if (res.status === 409) {
+        return;
+      }
+      if (res.status === 409) {
         alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
       } else {
-        alert('エラーが発生しました。しばらくしてから再度お試しください。');
+        alert('APIエラー HTTP ' + res.status + ': ' + (data.error || body));
       }
-    } catch {
-      alert('通信エラーが発生しました。しばらくしてから再度お試しください。');
+    } catch (parseErr) {
+      console.error('[checkout] parse failed:', parseErr, 'raw:', body);
+      alert('APIレスポンスエラー HTTP ' + (res ? res.status : '?') + '\n' + String(body).substring(0, 300));
     } finally {
       btns.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
     }
