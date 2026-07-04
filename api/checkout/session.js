@@ -4,16 +4,18 @@ const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 const { getActivePlan } = require('../../config/plans');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
-
 module.exports = async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_KEY
+  );
 
   let plan;
   try {
