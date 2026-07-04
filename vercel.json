@@ -1,13 +1,16 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/**/*.js",           "use": "@vercel/node" },
-    { "src": "*.html",                "use": "@vercel/static" },
-    { "src": "legal/*.html",          "use": "@vercel/static" },
-    { "src": "*.png",                 "use": "@vercel/static" },
-    { "src": "icons-generated/*.png", "use": "@vercel/static" },
-    { "src": "manifest.json",         "use": "@vercel/static" },
-    { "src": "sw.js",                 "use": "@vercel/static" }
+    { "src": "api/checkout/session.js",    "use": "@vercel/node" },
+    { "src": "api/campaign/status.js",     "use": "@vercel/node" },
+    { "src": "index.html",                 "use": "@vercel/static" },
+    { "src": "soft-volleyball-score.html", "use": "@vercel/static" },
+    { "src": "purchase-complete.html",     "use": "@vercel/static" },
+    { "src": "legal/*.html",               "use": "@vercel/static" },
+    { "src": "*.png",                      "use": "@vercel/static" },
+    { "src": "icons-generated/*.png",      "use": "@vercel/static" },
+    { "src": "manifest.json",              "use": "@vercel/static" },
+    { "src": "sw.js",                      "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/serveeye", "dest": "/soft-volleyball-score.html" },

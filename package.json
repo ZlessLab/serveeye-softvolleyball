@@ -3,8 +3,7 @@
   "version": "2.0.0",
   "description": "4人制ソフトバレーボール得点管理アプリ",
   "scripts": {
-    "build": "echo build ok",
-    "start": "node server.js"
+    "build": "echo build ok"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
