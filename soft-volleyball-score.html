@@ -736,6 +736,34 @@
 </head>
 <body>
 
+<!-- ===== PAYWALL ===== -->
+<div id="paywall" style="position:fixed;inset:0;z-index:9000;background:#0d1520;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;">
+  <div style="max-width:360px;width:100%;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:28px;font-weight:900;letter-spacing:3px;color:#e8f0fe;">Serve<span style="color:#00cc88;">Eye</span></div>
+    </div>
+    <div id="paywallMsg">
+      <p style="text-align:center;font-size:16px;font-weight:700;margin:0 0 8px;">ご利用にはライセンスが必要です</p>
+      <p style="text-align:center;font-size:13px;color:#7a90a8;margin:0 0 28px;">買い切り1,980円。一度購入すれば永続利用できます。</p>
+      <a href="/" style="display:block;background:#1b8a3e;color:#fff;text-align:center;padding:16px;border-radius:12px;font-size:17px;font-weight:900;text-decoration:none;margin-bottom:12px;">購入する — 1,980円（税込）</a>
+      <button onclick="showPaywallAuthForm()" style="display:block;width:100%;background:none;border:1px solid #2a3d55;color:#7a90a8;padding:12px;border-radius:10px;font-size:14px;cursor:pointer;">認証コードをお持ちの方はこちら</button>
+    </div>
+    <div id="paywallAuthForm" style="display:none;">
+      <p style="font-size:15px;font-weight:700;margin:0 0 16px;text-align:center;">ライセンスコードを入力</p>
+      <input id="authEmail" type="email" placeholder="購入時のメールアドレス" autocomplete="email"
+        style="width:100%;padding:14px;border-radius:10px;border:1px solid #2a3d55;background:#162030;color:#e8f0fe;font-size:15px;margin-bottom:12px;box-sizing:border-box;">
+      <input id="authCode" type="text" placeholder="XXXX-XXXX-XXXX-XXXX"
+        style="width:100%;padding:14px;border-radius:10px;border:1px solid #2a3d55;background:#162030;color:#e8f0fe;font-size:15px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;box-sizing:border-box;">
+      <button id="authSubmitBtn" onclick="submitLicenseCode()"
+        style="display:block;width:100%;background:#1b8a3e;color:#fff;padding:16px;border-radius:12px;font-size:16px;font-weight:900;border:none;cursor:pointer;margin-bottom:10px;">
+        認証する
+      </button>
+      <div id="authError" style="display:none;color:#ff6b6b;font-size:13px;text-align:center;margin-bottom:10px;"></div>
+      <button onclick="hidePaywallAuthForm()" style="display:block;width:100%;background:none;border:none;color:#7a90a8;font-size:14px;cursor:pointer;padding:8px;">← 戻る</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <div class="header">
   <div class="set-dots" id="setDots"></div>
@@ -2255,11 +2283,13 @@ function openHelpSheet()    { openSheet('helpSheet'); }
 function renderLicenseSection() {
   const sec = document.getElementById('licenseSection');
   if (!sec) return;
-  const licensed = !!localStorage.getItem('svb4_license');
-  if (licensed) {
-    sec.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(0,204,136,0.1);border:1px solid rgba(0,204,136,0.3);border-radius:10px;font-size:14px;font-weight:700;color:#00cc88;">✓ 購入済み</div>';
+  const raw = localStorage.getItem('svb4_license');
+  if (raw) {
+    let email = '';
+    try { email = JSON.parse(raw).email || ''; } catch {}
+    sec.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(0,204,136,0.1);border:1px solid rgba(0,204,136,0.3);border-radius:10px;font-size:14px;font-weight:700;color:#00cc88;">✓ 購入済み' + (email ? '<span style="font-size:12px;font-weight:400;color:#7a90a8;margin-left:4px;">(' + email + ')</span>' : '') + '</div>';
   } else {
-    sec.innerHTML = '<button class="btn-sheet btn-primary" style="width:100%;padding:14px;" onclick="startCheckoutFromApp()">🛒 購入する — 1,980円（税込）</button><p style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px;">先着100本限定価格・買い切り・最大2端末</p>';
+    sec.innerHTML = '<button class="btn-sheet btn-primary" style="width:100%;padding:14px;" onclick="startCheckoutFromApp()">🛒 購入する — 1,980円（税込）</button><p style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px;">先着100本限定価格・買い切り・最大2端末</p><button style="display:block;width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--sub);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;" onclick="closeSheet(\'settingsSheet\');document.getElementById(\'paywall\').style.display=\'flex\';showPaywallAuthForm();">認証コードをお持ちの方はこちら</button>';
   }
 }
 
@@ -2291,6 +2321,76 @@ async function startCheckoutFromApp() {
     alert('APIエラー HTTP ' + (res ? res.status : '?') + '\n' + String(body).substring(0, 300));
   } finally {
     renderLicenseSection();
+  }
+}
+
+function getDeviceFingerprint() {
+  return [
+    navigator.userAgent,
+    screen.width + 'x' + screen.height,
+    navigator.language,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ].join('|');
+}
+
+function showPaywallAuthForm() {
+  document.getElementById('paywallMsg').style.display = 'none';
+  document.getElementById('paywallAuthForm').style.display = 'block';
+}
+
+function hidePaywallAuthForm() {
+  document.getElementById('paywallAuthForm').style.display = 'none';
+  document.getElementById('paywallMsg').style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
+async function submitLicenseCode() {
+  const email = document.getElementById('authEmail').value.trim();
+  const code  = document.getElementById('authCode').value.trim();
+  const errEl = document.getElementById('authError');
+  const btn   = document.getElementById('authSubmitBtn');
+
+  errEl.style.display = 'none';
+  if (!email || !code) {
+    errEl.textContent = 'メールアドレスとコードを入力してください';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '認証中...';
+  try {
+    const res = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, fingerprint: getDeviceFingerprint() }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      localStorage.setItem('svb4_license', JSON.stringify({
+        session_token: data.session_token,
+        plan_slug: data.plan_slug,
+        email,
+        verified_at: Date.now(),
+      }));
+      document.getElementById('paywall').style.display = 'none';
+      renderLicenseSection();
+    } else {
+      const msgs = {
+        'Device limit reached': `端末登録上限（最大${data.max_devices}台）に達しました。サポートにお問い合わせください。`,
+        'Email does not match':  'メールアドレスが一致しません。購入時のアドレスをご確認ください。',
+        'Invalid license code':  'コードが正しくありません。入力内容をご確認ください。',
+        'License is not active': 'このライセンスは無効です。サポートにお問い合わせください。',
+      };
+      errEl.textContent = msgs[data.error] || ('エラー: ' + (data.error || '不明'));
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'ネットワークエラーが発生しました。再度お試しください。';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '認証する';
   }
 }
 
@@ -2978,6 +3078,11 @@ function el(id) { return document.getElementById(id); }
 //  INIT
 // ====================================================
 document.addEventListener('DOMContentLoaded', () => {
+  // ライセンスチェック
+  if (localStorage.getItem('svb4_license')) {
+    document.getElementById('paywall').style.display = 'none';
+  }
+
   loadTournament();
   loadState();
   if (!S.slotsA) S.slotsA = initSlots('A');
