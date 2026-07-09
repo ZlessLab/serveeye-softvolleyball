@@ -70,22 +70,25 @@ module.exports = async function handler(req, res) {
   if (existing) return res.status(200).json({ received: true });
 
   // プラン取得
-  const { data: plan } = await supabase
+  const { data: plan, error: planErr } = await supabase
     .from('plans').select('id, price_jpy, max_devices').eq('slug', planSlug).single();
   if (!plan) {
-    console.error('Plan not found:', planSlug);
+    console.error('Plan not found:', planSlug, '| supabase error:', planErr?.code, planErr?.message);
     return res.status(200).json({ received: true });
   }
 
   // 顧客 upsert
-  const { data: customer } = await supabase
+  const { data: customer, error: custErr } = await supabase
     .from('customers')
     .upsert({ email, stripe_customer_id: session.customer }, { onConflict: 'email' })
     .select('id').single();
-  if (!customer) return res.status(500).json({ error: 'DB error: customer' });
+  if (!customer) {
+    console.error('DB error: customer', custErr?.code, custErr?.message);
+    return res.status(500).json({ error: 'DB error: customer' });
+  }
 
   // 購入記録
-  const { data: purchase } = await supabase
+  const { data: purchase, error: purchErr } = await supabase
     .from('purchases')
     .insert({
       customer_id:       customer.id,
@@ -96,7 +99,10 @@ module.exports = async function handler(req, res) {
       status:            'completed',
     })
     .select('id').single();
-  if (!purchase) return res.status(500).json({ error: 'DB error: purchase' });
+  if (!purchase) {
+    console.error('DB error: purchase', purchErr?.code, purchErr?.message);
+    return res.status(500).json({ error: 'DB error: purchase' });
+  }
 
   // ライセンス生成
   const licenseCode = generateLicenseCode();
