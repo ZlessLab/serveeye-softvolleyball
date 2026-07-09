@@ -1,7 +1,6 @@
 {
   "framework": null,
   "buildCommand": null,
-  "outputDirectory": ".",
   "installCommand": "npm install",
   "rewrites": [
     { "source": "/serveeye", "destination": "/soft-volleyball-score.html" }
