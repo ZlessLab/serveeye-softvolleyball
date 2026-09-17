@@ -144,16 +144,16 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type  ON audit_logs(event_type);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at  ON audit_logs(created_at DESC);
 
 
--- ── RLS 無効化（service_role key のみがアクセス。フロントから直接触らせない）──
-ALTER TABLE products        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE plans           DISABLE ROW LEVEL SECURITY;
-ALTER TABLE campaign_limits DISABLE ROW LEVEL SECURITY;
-ALTER TABLE customers       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE purchases       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE licenses        DISABLE ROW LEVEL SECURITY;
-ALTER TABLE license_devices DISABLE ROW LEVEL SECURITY;
-ALTER TABLE coupons         DISABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs      DISABLE ROW LEVEL SECURITY;
+-- ── RLS 有効化（ポリシーなし。service_role key のみがアクセスし、フロントから直接触らせない）──
+ALTER TABLE products        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE plans           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campaign_limits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE purchases       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE licenses        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE license_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coupons         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs      ENABLE ROW LEVEL SECURITY;
 
 
 -- ============================================================
@@ -243,7 +243,7 @@ CREATE INDEX IF NOT EXISTS idx_refunds_purchase_id      ON refunds(purchase_id);
 CREATE INDEX IF NOT EXISTS idx_refunds_license_id       ON refunds(license_id);
 CREATE INDEX IF NOT EXISTS idx_refunds_stripe_refund_id ON refunds(stripe_refund_id);
 
-ALTER TABLE refunds DISABLE ROW LEVEL SECURITY;
+ALTER TABLE refunds ENABLE ROW LEVEL SECURITY;
 
 
 -- ── 11. app_versions（アプリバージョン管理） ──────────────────
@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS app_versions (
 CREATE INDEX IF NOT EXISTS idx_app_versions_product_id ON app_versions(product_id);
 CREATE INDEX IF NOT EXISTS idx_app_versions_is_current ON app_versions(product_id) WHERE is_current = true;
 
-ALTER TABLE app_versions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE app_versions ENABLE ROW LEVEL SECURITY;
 
 
 -- ── 12. feature_flags（機能ON/OFF管理） ──────────────────────
@@ -284,7 +284,7 @@ CREATE INDEX IF NOT EXISTS idx_feature_flags_product_id ON feature_flags(product
 CREATE INDEX IF NOT EXISTS idx_feature_flags_flag_key   ON feature_flags(flag_key);
 CREATE INDEX IF NOT EXISTS idx_feature_flags_plan_id    ON feature_flags(plan_id);
 
-ALTER TABLE feature_flags DISABLE ROW LEVEL SECURITY;
+ALTER TABLE feature_flags ENABLE ROW LEVEL SECURITY;
 
 
 -- ── 13. organizations（法人・団体ライセンス管理・将来用） ──────
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 CREATE INDEX IF NOT EXISTS idx_organizations_contact_email ON organizations(contact_email);
 CREATE INDEX IF NOT EXISTS idx_organizations_plan_id       ON organizations(plan_id);
 
-ALTER TABLE organizations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
 
 -- ── 13-b. organization_licenses（組織↔ライセンス 中間テーブル） ─
@@ -317,7 +317,7 @@ CREATE TABLE IF NOT EXISTS organization_licenses (
 
 CREATE INDEX IF NOT EXISTS idx_org_licenses_organization_id ON organization_licenses(organization_id);
 
-ALTER TABLE organization_licenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_licenses ENABLE ROW LEVEL SECURITY;
 
 
 -- ============================================================
