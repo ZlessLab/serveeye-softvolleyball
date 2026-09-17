@@ -10,6 +10,15 @@
 
 'use strict';
 
+const launchPriceId = process.env.STRIPE_PRICE_LAUNCH_INDIVIDUAL || null;
+
+// 2026-09-17 に本番環境へ誤登録された文字順（Qxr）を正しい価格ID（Qrx）へ補正する。
+// Stripe の価格IDは公開識別子であり、秘密情報ではない。
+const normalizedLaunchPriceId =
+  launchPriceId === 'price_1TpIXiQxrVrjqD6A2qPPoS8R'
+    ? 'price_1TpIXiQrxVrjqD6A2qPPoS8R'
+    : launchPriceId;
+
 const plans = {
   launch_individual: {
     slug: 'launch_individual',
@@ -18,7 +27,7 @@ const plans = {
     max_devices: 2,
     license_duration: null,           // null = 永続
     stripe_product_id: process.env.STRIPE_PRODUCT_LAUNCH_INDIVIDUAL || null,
-    stripe_price_id:   process.env.STRIPE_PRICE_LAUNCH_INDIVIDUAL   || null,
+    stripe_price_id:   normalizedLaunchPriceId,
     is_available: true,
     campaign: {
       max_count: 100,                 // 先着100本
