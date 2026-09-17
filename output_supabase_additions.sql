@@ -14,7 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_refunds_purchase_id      ON refunds(purchase_id);
 CREATE INDEX IF NOT EXISTS idx_refunds_license_id       ON refunds(license_id);
 CREATE INDEX IF NOT EXISTS idx_refunds_stripe_refund_id ON refunds(stripe_refund_id);
 
-ALTER TABLE refunds DISABLE ROW LEVEL SECURITY;
+ALTER TABLE refunds ENABLE ROW LEVEL SECURITY;
 
 
 CREATE TABLE IF NOT EXISTS app_versions (
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS app_versions (
 CREATE INDEX IF NOT EXISTS idx_app_versions_product_id ON app_versions(product_id);
 CREATE INDEX IF NOT EXISTS idx_app_versions_is_current ON app_versions(product_id) WHERE is_current = true;
 
-ALTER TABLE app_versions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE app_versions ENABLE ROW LEVEL SECURITY;
 
 
 CREATE TABLE IF NOT EXISTS feature_flags (
@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_feature_flags_product_id ON feature_flags(product
 CREATE INDEX IF NOT EXISTS idx_feature_flags_flag_key   ON feature_flags(flag_key);
 CREATE INDEX IF NOT EXISTS idx_feature_flags_plan_id    ON feature_flags(plan_id);
 
-ALTER TABLE feature_flags DISABLE ROW LEVEL SECURITY;
+ALTER TABLE feature_flags ENABLE ROW LEVEL SECURITY;
 
 
 CREATE TABLE IF NOT EXISTS organizations (
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 CREATE INDEX IF NOT EXISTS idx_organizations_contact_email ON organizations(contact_email);
 CREATE INDEX IF NOT EXISTS idx_organizations_plan_id       ON organizations(plan_id);
 
-ALTER TABLE organizations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
 
 CREATE TABLE IF NOT EXISTS organization_licenses (
@@ -81,4 +81,4 @@ CREATE TABLE IF NOT EXISTS organization_licenses (
 
 CREATE INDEX IF NOT EXISTS idx_org_licenses_organization_id ON organization_licenses(organization_id);
 
-ALTER TABLE organization_licenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_licenses ENABLE ROW LEVEL SECURITY;
