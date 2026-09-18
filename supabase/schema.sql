@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS licenses (
   status      TEXT        NOT NULL DEFAULT 'active',   -- 'active' | 'suspended' | 'expired'
   expires_at  TIMESTAMPTZ NULL,                        -- NULL=永続
   max_devices INT         NOT NULL DEFAULT 2,
+  delivered_at TIMESTAMPTZ NULL,                       -- ライセンスメール送信完了日時
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
