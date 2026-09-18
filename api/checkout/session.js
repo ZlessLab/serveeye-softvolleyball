@@ -4,11 +4,33 @@ const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
 const { getActivePlan } = require('../../config/plans');
 
+function getConfiguredPaymentLink() {
+  const raw = process.env.STRIPE_PAYMENT_LINK_URL?.trim();
+  if (!raw) return null;
+
+  const url = new URL(raw);
+  if (url.protocol !== 'https:' || url.hostname !== 'buy.stripe.com') {
+    throw new Error('STRIPE_PAYMENT_LINK_URL must be an https://buy.stripe.com URL');
+  }
+  return url.toString();
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // A Vercel test project can use a Stripe-hosted Payment Link without
+  // storing a Stripe API secret. Production keeps the existing flow
+  // because this variable is configured only on the sandbox project.
+  try {
+    const paymentLink = getConfiguredPaymentLink();
+    if (paymentLink) return res.status(200).json({ url: paymentLink });
+  } catch (err) {
+    console.error('Stripe payment link config error:', err.message);
+    return res.status(503).json({ error: 'Stripe payment link not configured' });
   }
 
   let plan;
@@ -64,3 +86,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Stripe error', detail: err.message });
   }
 };
+
+module.exports._test = { getConfiguredPaymentLink };
