@@ -500,7 +500,7 @@
 
   (async function loadCampaignStatus() {
     try {
-      const res = await fetch('/api/campaign/status');
+      const res = await fetch('/api/campaign/status?ts=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
       const el = document.getElementById('campaign-remaining');
