@@ -1,4 +1,4 @@
-const CACHE_NAME = 'svb4-v8-20260704';
+const CACHE_NAME = 'svb4-v9-20260919';
 const ASSETS = [
   '/serveeye',
   './manifest.json?v=20260629',
@@ -33,6 +33,11 @@ const isNetworkFirst = request => {
   return request.mode === 'navigate' || NETWORK_FIRST_PATHS.includes(url.pathname);
 };
 
+const isApiRequest = request => {
+  const url = new URL(request.url);
+  return url.pathname.startsWith('/api/');
+};
+
 const fetchAndCache = async request => {
   const response = await fetch(request, { cache: 'no-store' });
   if (request.method === 'GET' && response.ok) {
@@ -60,6 +65,12 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+
+  // 販売数や認証などのAPIレスポンスは端末に保存せず、常に最新値を取得する。
+  if (isApiRequest(e.request)) {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }));
+    return;
+  }
 
   if (isNetworkFirst(e.request)) {
     e.respondWith(
