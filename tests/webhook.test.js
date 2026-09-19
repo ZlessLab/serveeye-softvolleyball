@@ -37,3 +37,9 @@ test('derived license detection distinguishes legacy random codes', () => {
     false
   );
 });
+
+test('campaign count increases only for a newly created live-mode license', () => {
+  assert.equal(_test.shouldIncrementCampaign({ livemode: true }, true), true);
+  assert.equal(_test.shouldIncrementCampaign({ livemode: false }, true), false);
+  assert.equal(_test.shouldIncrementCampaign({ livemode: true }, false), false);
+});

@@ -37,6 +37,10 @@ function isDerivedLicense(license, licenseCode) {
   return Boolean(license?.code_hash) && license.code_hash === hashCode(licenseCode);
 }
 
+function shouldIncrementCampaign(event, licenseCreated) {
+  return Boolean(event?.livemode && licenseCreated);
+}
+
 async function readRawBody(req) {
   const chunks = [];
   for await (const chunk of req) {
@@ -204,7 +208,8 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ received: true, legacy_license: true });
     }
 
-    if (licenseResult.created) {
+    // サンドボックス決済は本番の「先着100本」に含めない。
+    if (shouldIncrementCampaign(event, licenseResult.created)) {
       const { error: campaignError } = await supabase.rpc('increment_campaign_sale', {
         target_plan_id: plan.id,
       });
@@ -228,4 +233,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { deriveLicenseCode, hashCode, isDerivedLicense };
+module.exports._test = { deriveLicenseCode, hashCode, isDerivedLicense, shouldIncrementCampaign };
