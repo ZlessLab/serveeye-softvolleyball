@@ -1,4 +1,4 @@
-const CACHE_NAME = 'svb4-v9-20260919';
+const CACHE_NAME = 'svb4-v10-20261021';
 const ASSETS = [
   '/serveeye',
   './manifest.json?v=20260629',
@@ -24,6 +24,8 @@ const NETWORK_FIRST_PATHS = [
   '/soft-volleyball-score.html',  // 旧URL後方互換
   '/manifest.json',
   '/sw.js',
+  '/demo-flow.js',
+  '/purchase-ui.js',
   '/apple-touch-icon.png',
   '/favicon.png'
 ];

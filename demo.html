@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>購入前の操作体験 | ServeEye</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b171b;color:#edf6f4;font:16px/1.7 -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif}a{color:#a4ead3;text-underline-offset:4px}button,a.cta{min-height:48px;font:inherit;font-weight:700;border-radius:12px;padding:13px 18px;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #e5c675;outline-offset:4px}header{max-width:960px;margin:auto;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:15px}header a{font-size:14px}header .brand{font-size:22px;font-weight:900;letter-spacing:1px;text-decoration:none;color:#fff}.brand span{color:#80d9b9}main{max-width:660px;margin:auto;padding:14px 20px 55px}.eyebrow{color:#80d9b9;font-size:12px;font-weight:800;letter-spacing:2px}h1{font-size:clamp(25px,6vw,36px);line-height:1.4;margin:12px 0}.intro{color:#b1c5c3;margin-bottom:22px}.notice{font-size:13px;border:1px solid #34564d;background:#142923;border-radius:10px;padding:12px 15px}.progress{display:flex;justify-content:space-between;font-size:13px;color:#b1c5c3;margin:24px 0 10px}.track{height:4px;background:#243c36;border-radius:8px;overflow:hidden}.track div{height:100%;background:#88dfbd;transition:width .25s}.board{border:1px solid #36584e;border-radius:20px;background:linear-gradient(145deg,#19372d,#10251f);padding:20px;margin-top:20px;box-shadow:0 20px 55px #0003}.sample-label{color:#d9c595;letter-spacing:2px;font-size:11px;text-align:center}.scores{display:grid;grid-template-columns:1fr 32px 1fr;text-align:center;align-items:center;gap:8px}.team{font-size:14px}.score{font-size:66px;font-weight:800;line-height:1.3;font-variant-numeric:tabular-nums}.score.a{color:#a9f1ce}.score.b{color:#a9d5f6}.court{border:1px solid #638478;border-radius:5px;display:grid;grid-template-columns:1fr 1fr;min-height:130px;margin:15px 0}.side{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}.side+ .side{border-left:2px dashed #b4d2c2}.player{justify-self:center;align-self:center;border-radius:50%;width:39px;height:39px;display:grid;place-items:center;border:1px solid #799e8f;background:#284d3e;font-size:13px}.blue .player{background:#284651}.serving{outline:2px solid #edcf86;outline-offset:3px}.serve{font-size:14px;color:#e5d39f;text-align:center}.event{font-size:13px;color:#b8cec5;border-top:1px solid #34564b;padding-top:12px;margin-top:14px}.guide h2{font-size:22px;line-height:1.5;margin:24px 0 8px}.guide p{color:#b1c5c3;margin:0 0 18px}.primary{background:#a4e9cc;color:#10251d;border:0;width:100%}.secondary{background:transparent;border:1px solid #49665e;color:#c3d6cf;width:100%;margin-top:12px}.purchase-disabled{opacity:.55;cursor:not-allowed}.conversion{margin-top:24px;border:1px solid #8d8057;border-radius:16px;background:#202a23;padding:22px}.conversion h2{margin:0;font-size:22px}.conversion p{color:#c6d5ca;font-size:14px}.price{font-size:34px;font-weight:800;color:#f0d99e;margin:12px 0}.price small{font-size:14px}.result{background:#11251e;border-radius:10px;padding:15px;margin:12px 0;font-size:14px}.small{font-size:12px!important}.status{min-height:40px;font-size:13px!important}footer{max-width:660px;margin:0 auto;padding:0 20px 30px;font-size:12px;color:#91aaa2;display:flex;flex-wrap:wrap;gap:12px}.retry{background:none;color:#a4ead3;border:0;font-size:13px;padding:8px;min-height:44px}.hidden{display:none!important}button:disabled{cursor:wait;opacity:.65}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script src="/demo-flow.js?v=20261021" defer></script><script src="/purchase-ui.js?v=20261021" defer></script>
+</head>
+<body>
+<header><a class="brand" href="/">Serve<span>Eye</span></a><a href="/soft-volleyball-score.html">購入済みの方</a></header>
+<main>
+<div id="intro">
+<div class="eyebrow">INTERACTIVE PREVIEW</div><h1>記録の手間が減る感覚を、<br>購入前に。</h1>
+<p class="intro">約1分の操作体験。得点・サーブ順・取消の使い心地を、固定サンプルでご確認ください。</p>
+<button id="begin" class="primary" type="button" style="margin:0 0 16px">操作体験をはじめる →</button>
+<div class="notice">カード登録不要・自動課金なし。これは固定の操作サンプルです。実際の試合の記録・保存は購入後に利用できます。</div>
+<p style="font-size:14px;color:#d9c595">有料版：<span data-live-price>—</span>円（税込）・買い切り・利用者1名・最大2端末<br>購入手続きは操作体験の後、または<a href="/#pricing">料金・購入ページ</a>から。</p>
+</div>
+<div class="progress"><span>固定サンプルの操作体験</span><span id="progress">1 / 5</span></div><div class="track"><div id="bar" style="width:20%"></div></div>
+<section id="board" class="board" aria-label="固定サンプルのスコアボード">
+<div class="sample-label">SAMPLE MATCH · 実試合には使えません</div>
+<div class="scores"><div><div class="team">緑クラブ</div><div class="score a" id="scoreA">12</div></div><div>:</div><div><div class="team">青クラブ</div><div class="score b" id="scoreB">12</div></div></div>
+<div class="court"><div class="side" id="players"></div><div class="side blue"><span class="player">#21</span><span class="player">#22</span><span class="player">#23</span><span class="player" id="blueServer">#24</span></div></div>
+<div class="serve" id="serve"></div><div class="event" id="event" aria-live="polite"></div>
+</section>
+<section class="guide"><h2 id="title"></h2><p id="description"></p><button id="next" class="primary" type="button"></button></section>
+<section class="conversion hidden" id="conversion" aria-label="有料版の購入案内">
+<div class="eyebrow">YOUR NEXT MATCH</div><h2>自分のチームの試合を、記録する。</h2>
+<div class="result">続きのラリーを省略した記録例：緑クラブ 2–0 青クラブ<br>第1セット 15–10 ／ 第2セット 15–13<br><span class="small">説明用の固定結果です。保存・コピーはできません。</span></div>
+<p>有料版では、チーム名・背番号・試合ルールの設定、得点とサーブ順の管理、タイムアウト、履歴保存・結果コピーを利用できます。</p>
+<div class="price"><span data-live-price>—</span><small>円（税込）・買い切り</small></div>
+<button data-checkout class="primary" type="button" disabled>販売情報を確認中…</button>
+<p data-purchase-message class="status" role="status" aria-live="polite"></p><button class="retry" data-purchase-retry type="button">販売情報を再確認</button>
+<p class="small">購入後、メールで認証コードを受け取り、アプリで購入時のメールアドレスとコードを入力します。定期課金ではありません。</p>
+<a href="/soft-volleyball-score.html">すでに購入済みの方はアプリを開く</a>
+</section>
+<button class="secondary hidden" id="reset" type="button">同じ固定サンプルをもう一度見る</button>
+<p class="small" style="margin-top:24px"><a href="/#pricing">料金・利用条件を確認する</a> ／ <a href="/">製品紹介へ戻る</a></p>
+</main>
+<footer><a href="/legal/privacy.html">プライバシーポリシー</a><a href="/legal/terms.html">利用規約</a><a href="/legal/tokushoho.html">特定商取引法に基づく表記</a><span>© 2026 Zless.</span></footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ let state=ServeEyeDemo.snapshot(0), locked=false;
+ const el=id=>document.getElementById(id);
+ function render(){
+  el('progress').textContent=`${state.index+1} / ${ServeEyeDemo.count}`;el('bar').style.width=`${(state.index+1)/ServeEyeDemo.count*100}%`;
+  el('scoreA').textContent=state.score[0];el('scoreB').textContent=state.score[1];el('title').textContent=state.title;el('description').textContent=state.text;el('event').textContent=state.event;
+  el('serve').textContent=state.server==='A'?'緑クラブのサーブ · #'+state.order[0]:'青クラブのサーブ · #24';
+  el('players').replaceChildren(...state.order.map((n,i)=>{const p=document.createElement('span');p.className='player'+(i===0&&state.server==='A'?' serving':'');p.textContent='#'+n;return p;}));
+  el('blueServer').classList.toggle('serving',state.server==='B');el('next').textContent=state.action||'';el('next').classList.toggle('hidden',state.complete);el('conversion').classList.toggle('hidden',!state.complete);el('reset').classList.toggle('hidden',!state.complete);
+ }
+ el('begin').addEventListener('click',()=>{el('intro').classList.add('hidden');el('board').scrollIntoView({block:'start',behavior:'auto'});el('next').focus({preventScroll:true});});
+ el('next').addEventListener('click',()=>{if(locked||state.complete)return;locked=true;el('next').disabled=true;state=ServeEyeDemo.advance(state.index,state.index);render();(state.complete?el('conversion'):el('board')).scrollIntoView({block:'start',behavior:'auto'});setTimeout(()=>{locked=false;el('next').disabled=false;},450);});
+ el('reset').addEventListener('click',()=>{if(locked)return;state=ServeEyeDemo.snapshot(0);render();el('board').scrollIntoView({block:'start',behavior:'auto'});});render();
+});
+</script>
+</body></html>

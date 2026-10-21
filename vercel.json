@@ -8,7 +8,7 @@
   ],
   "headers": [
     {
-      "source": "/(soft-volleyball-score.html|index.html|purchase-complete.html|manifest.json|sw.js|apple-touch-icon.png|favicon.png|icon-192.png|icon-512.png)",
+      "source": "/(demo.html|demo-flow.js|purchase-ui.js|soft-volleyball-score.html|index.html|purchase-complete.html|manifest.json|sw.js|apple-touch-icon.png|favicon.png|icon-192.png|icon-512.png)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
