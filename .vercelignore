@@ -1,2 +1,12 @@
+# Local development, native preparation and management-only files.
 server.js
 supabase/
+mobile/
+prep-docs/
+docs/
+tests/
+*.md
+*.sql
+.env
+.env.*
+# Keep api/, lib/, config/, package.json, vercel.json, web assets and icons.

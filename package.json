@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
-    "nanoid": "^3.3.8",
     "resend": "^4.6.0",
     "stripe": "^17.7.0"
   },

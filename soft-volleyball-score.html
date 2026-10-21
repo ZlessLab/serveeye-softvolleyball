@@ -744,8 +744,12 @@
     </div>
     <div id="paywallMsg">
       <p style="text-align:center;font-size:16px;font-weight:700;margin:0 0 8px;">ご利用にはライセンスが必要です</p>
-      <p style="text-align:center;font-size:13px;color:#7a90a8;margin:0 0 28px;">買い切り1,980円。一度購入すれば永続利用できます。</p>
-      <a href="/" style="display:block;background:#1b8a3e;color:#fff;text-align:center;padding:16px;border-radius:12px;font-size:17px;font-weight:900;text-decoration:none;margin-bottom:12px;">購入する — 1,980円（税込）</a>
+      <p style="text-align:center;font-size:13px;color:#7a90a8;margin:0 0 28px;">買い切り・利用者1名・最大2端末。実試合の記録は購入後に利用できます。</p>
+      <a href="#" data-checkout style="display:block;background:#1b8a3e;color:#fff;text-align:center;padding:16px;border-radius:12px;font-size:17px;font-weight:900;text-decoration:none;margin-bottom:12px;">販売情報を確認中…</a>
+      <p data-purchase-message role="status" aria-live="polite" style="font-size:13px;color:#b1c5c3"></p>
+      <button type="button" data-purchase-retry style="min-height:44px;border:0;background:none;color:#a4ead3">販売情報を再確認</button>
+      <a href="/demo.html" style="display:block;min-height:48px;padding:12px;text-align:center;color:#a4ead3">購入前に固定サンプルを操作する →</a>
+      <p style="font-size:12px;color:#b1c5c3;text-align:center">カード登録不要・自動課金なし。実試合の記録はできません。</p>
       <button onclick="showPaywallAuthForm()" style="display:block;width:100%;background:none;border:1px solid #2a3d55;color:#7a90a8;padding:12px;border-radius:10px;font-size:14px;cursor:pointer;">認証コードをお持ちの方はこちら</button>
     </div>
     <div id="paywallAuthForm" style="display:none;">
@@ -2289,39 +2293,9 @@ function renderLicenseSection() {
     try { email = JSON.parse(raw).email || ''; } catch {}
     sec.innerHTML = '<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(0,204,136,0.1);border:1px solid rgba(0,204,136,0.3);border-radius:10px;font-size:14px;font-weight:700;color:#00cc88;">✓ 購入済み' + (email ? '<span style="font-size:12px;font-weight:400;color:#7a90a8;margin-left:4px;">(' + email + ')</span>' : '') + '</div>';
   } else {
-    sec.innerHTML = '<button class="btn-sheet btn-primary" style="width:100%;padding:14px;" onclick="startCheckoutFromApp()">🛒 購入する — 1,980円（税込）</button><p style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px;">先着100本限定価格・買い切り・最大2端末</p><button style="display:block;width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--sub);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;" onclick="closeSheet(\'settingsSheet\');document.getElementById(\'paywall\').style.display=\'flex\';showPaywallAuthForm();">認証コードをお持ちの方はこちら</button>';
+    sec.innerHTML = '<button class="btn-sheet btn-primary" style="width:100%;padding:14px;" data-checkout onclick="startCheckoutFromApp(event)">購入する</button><p style="font-size:11px;color:var(--sub);text-align:center;margin-top:6px;">買い切り・最大2端末</p><button style="display:block;width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--sub);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;" onclick="closeSheet(\'settingsSheet\');document.getElementById(\'paywall\').style.display=\'flex\';showPaywallAuthForm();">認証コードをお持ちの方はこちら</button>';
   }
-}
-
-async function startCheckoutFromApp() {
-  const btn = document.querySelector('#licenseSection button');
-  if (btn) { btn.disabled = true; btn.textContent = '処理中...'; }
-  let res;
-  try {
-    res = await fetch('/api/checkout/session', { method: 'POST' });
-  } catch (networkErr) {
-    alert('ネットワークエラー: ' + networkErr.message);
-    renderLicenseSection();
-    return;
-  }
-  let body = '';
-  try {
-    body = await res.text();
-    const data = JSON.parse(body);
-    if (res.ok && data.url) {
-      window.location.href = data.url;
-      return;
-    }
-    if (res.status === 409) {
-      alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
-    } else {
-      alert('エラー HTTP ' + res.status + ': ' + (data.error || '') + (data.detail ? '\n' + data.detail : ''));
-    }
-  } catch {
-    alert('APIエラー HTTP ' + (res ? res.status : '?') + '\n' + String(body).substring(0, 300));
-  } finally {
-    renderLicenseSection();
-  }
+  if (window.refreshPurchaseUI) window.refreshPurchaseUI();
 }
 
 function getDeviceFingerprint() {
@@ -3356,5 +3330,6 @@ function runAutoTest() {
   document.body.appendChild(overlay);
 }
 </script>
+<script src="/purchase-ui.js?v=20261021" defer></script>
 </body>
 </html>

@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ServeEye — 4人制ソフトバレーボールのローテーション・得点・タイムアウトをスマホ1台で管理。買い切り1,980円。">
+  <meta name="description" content="ServeEye — 4人制ソフトバレーボールのローテーション・得点・タイムアウトをスマホ1台で管理。買い切り・購入前の固定サンプル操作体験。">
   <meta name="theme-color" content="#0d1520">
   <title>ServeEye — 4人制ソフトバレー 得点管理アプリ</title>
 
   <!-- OGP（SNSシェア用） -->
   <meta property="og:title" content="ServeEye — 4人制ソフトバレー 得点管理アプリ">
-  <meta property="og:description" content="ローテーション・タイムアウト・試合履歴をスマホ1台で管理。買い切り1,980円。">
+  <meta property="og:description" content="ローテーション・タイムアウト・試合履歴をスマホ1台で管理。買い切り・購入前の固定サンプル操作体験。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://serveeye.zless.jp/">
 
@@ -41,7 +41,7 @@
     .nav-logo span { color: var(--teal); }
     .nav-cta {
       background: var(--green); color: #fff; font-size: 14px; font-weight: 700;
-      padding: 9px 20px; border-radius: 20px; white-space: nowrap;
+      padding: 10px 12px; min-height:44px; max-width:62%; border-radius:20px; white-space:normal; text-align:center; line-height:1.5;
       text-decoration: none; transition: opacity 0.15s;
     }
     .nav-cta:hover { opacity: 0.88; }
@@ -79,6 +79,8 @@
       font-size: 14px; padding: 8px; text-decoration: none;
       border-bottom: 1px solid var(--border);
     }
+    .purchase-disabled { opacity: .55; cursor: not-allowed; }
+    [data-checkout]:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
     .btn-demo:hover { color: var(--text); }
 
     /* ===== APP MOCKUP ===== */
@@ -259,12 +261,10 @@
   <h1>試合の記録を、<br><em>もっとスムーズに。</em></h1>
   <p>ローテーション管理からタイムアウトまで。<br>スコア記録のすべてをスマホ1台で。</p>
   <div class="hero-btns">
-    <a class="btn-buy" href="#" data-checkout onclick="startCheckout(event)">
-      購入する — 1,980円（税込）
-      <span class="btn-buy-sub">買い切り・永続利用・最大2端末</span>
-    </a>
-    <a class="btn-demo" href="/soft-volleyball-score.html">アプリを見る →</a>
+    <a class="btn-buy" href="/demo.html">購入前に操作を体験 →<span class="btn-buy-sub">約1分・固定サンプル・カード登録不要</span></a>
+    <a class="btn-demo" href="#pricing">料金・購入はこちら →</a>
   </div>
+<p style="font-size:13px;color:var(--sub);margin-top:16px">実際の試合の記録・保存は購入後に利用できます。体験から自動課金されることはありません。<br><a href="/soft-volleyball-score.html">購入済みの方はアプリを開く →</a></p>
 </div>
 
 <!-- ===== APP MOCKUP ===== -->
@@ -350,7 +350,7 @@
     <div class="feature-card">
       <div class="feature-icon">📶</div>
       <div class="feature-title">オフライン対応</div>
-      <div class="feature-desc">一度認証すれば最大72時間はWi-Fiなしで利用可能。体育館のネット環境に依存しません。</div>
+      <div class="feature-desc">一度認証すれば試合データを端末に保存。購入時の認証にはインターネット接続が必要です。</div>
     </div>
   </div>
 </section>
@@ -386,6 +386,13 @@
   </div>
 </section>
 
+<section aria-label="操作体験と有料版の違い">
+  <p class="section-label">Try, then decide</p><h2 class="section-title">使い心地を確かめて、実際の試合へ。</h2>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-title">購入前の操作体験</div><div class="feature-desc">決まったチーム・得点のサンプルで、サーブ順の自動管理と取消を体験できます。実試合の記録、設定変更、履歴保存・コピーはできません。</div><p style="margin-top:16px"><a href="/demo.html">固定サンプルを操作する →</a></p></div>
+    <div class="feature-card"><div class="feature-title">購入後のServeEye</div><div class="feature-desc">自分のチーム名・背番号・ルールで記録。得点、ローテーション、タイムアウトを管理し、試合履歴を保存、結果をコピーできます。買い切り・利用者1名・最大2端末。</div><p style="margin-top:16px"><a href="#pricing">価格と購入手順を確認 →</a></p></div>
+  </div>
+</section>
 <!-- ===== PRICING ===== -->
 <section id="pricing">
   <p class="section-label">Pricing</p>
@@ -394,7 +401,7 @@
 
   <div class="pricing-card">
     <div class="plan-name">個人ライセンス</div>
-    <div class="plan-price">1,980<span style="font-size:22px">円</span></div>
+    <div class="plan-price"><span data-live-price>—</span><span style="font-size:22px">円</span></div>
     <div class="plan-tax">税込・買い切り</div>
     <div id="campaign-remaining" style="display:none; color:var(--gold); font-size:13px; font-weight:700; margin-bottom:12px;"></div>
 
@@ -407,6 +414,8 @@
       <div class="plan-feature"><span class="check">✓</span> iOS Safari / Android Chrome 対応</div>
     </div>
 
+    <p data-purchase-message role="status" aria-live="polite" style="font-size:13px;margin-bottom:12px"></p>
+    <button data-purchase-retry type="button" style="min-height:44px;background:none;color:var(--teal);border:0;cursor:pointer">販売情報を再確認</button>
     <a class="btn-buy-card" href="#" data-checkout onclick="startCheckout(event)">購入する</a>
     <p class="plan-note">クレジットカード決済（Visa / Mastercard / American Express / JCB）<br>購入完了後、メールにて認証コードをお送りします。</p>
   </div>
@@ -437,11 +446,11 @@
     </details>
     <details>
       <summary>オフライン（体育館でWi-Fiなし）でも使えますか？</summary>
-      <div class="faq-answer">はい、認証済みの端末であれば最大72時間はインターネット接続なしで使えます。認証から72時間以上経過した場合は、次回オンライン時に自動で再認証されます。</div>
+      <div class="faq-answer">認証にはインターネット接続が必要です。会場へ行く前に、利用する端末で認証とアプリの起動をお済ませください。通信のない環境で利用する際は、事前にその端末で動作をご確認ください。</div>
     </details>
     <details>
       <summary>機種変更したら端末の登録はどうなりますか？</summary>
-      <div class="faq-answer">アプリの設定メニューから「この端末の認証を解除」を行い、新しい端末で再ログインしてください。<br>旧端末で解除できない場合はサポートまでご連絡ください。</div>
+      <div class="faq-answer">新しい端末で購入時のメールアドレスと認証コードを入力してください。登録上限に達した場合や旧端末の登録変更が必要な場合は、<a href="mailto:info@zless.jp">info@zless.jp</a> までご連絡ください。アプリ内からの端末解除には現在対応していません。</div>
     </details>
     <details>
       <summary>返金はできますか？</summary>
@@ -462,54 +471,6 @@
   <div class="copyright">© 2026 Zless. All rights reserved.</div>
 </footer>
 
-<script>
-  async function startCheckout(e) {
-    e.preventDefault();
-    const btns = document.querySelectorAll('[data-checkout]');
-    btns.forEach(el => { el.style.opacity = '0.6'; el.style.pointerEvents = 'none'; });
-    let res;
-    try {
-      res = await fetch('/api/checkout/session', { method: 'POST' });
-    } catch (networkErr) {
-      console.error('[checkout] fetch failed:', networkErr);
-      alert('ネットワークエラー: ' + networkErr.message);
-      btns.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
-      return;
-    }
-    let body;
-    try {
-      body = await res.text();
-      console.log('[checkout] status:', res.status, 'body:', body);
-      const data = JSON.parse(body);
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-        return;
-      }
-      if (res.status === 409) {
-        alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
-      } else {
-        alert('APIエラー HTTP ' + res.status + ': ' + (data.error || body));
-      }
-    } catch (parseErr) {
-      console.error('[checkout] parse failed:', parseErr, 'raw:', body);
-      alert('APIレスポンスエラー HTTP ' + (res ? res.status : '?') + '\n' + String(body).substring(0, 300));
-    } finally {
-      btns.forEach(el => { el.style.opacity = ''; el.style.pointerEvents = ''; });
-    }
-  }
-
-  (async function loadCampaignStatus() {
-    try {
-      const res = await fetch('/api/campaign/status?ts=' + Date.now(), { cache: 'no-store' });
-      if (!res.ok) return;
-      const data = await res.json();
-      const el = document.getElementById('campaign-remaining');
-      if (el && data.remaining !== null) {
-        el.textContent = `残り ${data.remaining} 本（先着100本限定）`;
-        el.style.display = 'block';
-      }
-    } catch {}
-  })();
-</script>
+<script src="/purchase-ui.js?v=20261021" defer></script>
 </body>
 </html>
