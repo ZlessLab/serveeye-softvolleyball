@@ -2110,13 +2110,14 @@ function toggleHistoryDetail(idx) {
 }
 
 function deleteHistoryItem(idx) {
-  if (!confirm('この試合履歴を削除しますか？')) return;
-  try {
-    const saved = JSON.parse(localStorage.getItem('svb4_results') || '[]');
-    saved.splice(idx, 1);
-    localStorage.setItem('svb4_results', JSON.stringify(saved));
-  } catch(e) {}
-  openHistorySheet(); // 再描画
+  showConfirm('この試合履歴を削除しますか？', () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('svb4_results') || '[]');
+      saved.splice(idx, 1);
+      localStorage.setItem('svb4_results', JSON.stringify(saved));
+    } catch(e) {}
+    openHistorySheet(); // 再描画
+  });
 }
 
 function copyMatchResult() {
