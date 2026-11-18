@@ -40,12 +40,15 @@ module.exports = async function handler(req, res) {
   // ライセンス検索
   const { data: license } = await supabase
     .from('licenses')
-    .select('id, customer_id, status, max_devices, plans(slug)')
+    .select('id, customer_id, status, max_devices, expires_at, plans(slug)')
     .eq('code_hash', codeHash)
     .single();
 
   if (!license) return res.status(401).json({ error: 'Invalid license code' });
   if (license.status !== 'active') return res.status(403).json({ error: 'License is not active' });
+  if (license.expires_at && new Date(license.expires_at).getTime() <= Date.now()) {
+    return res.status(403).json({ error: 'License expired', expires_at: license.expires_at });
+  }
 
   // メール照合
   const { data: customer } = await supabase
@@ -71,7 +74,7 @@ module.exports = async function handler(req, res) {
       .from('license_devices')
       .update({ last_verified_at: new Date().toISOString() })
       .eq('id', existing.id);
-    return res.status(200).json({ ok: true, session_token: existing.session_token, plan_slug: planSlug });
+    return res.status(200).json({ ok: true, session_token: existing.session_token, plan_slug: planSlug, expires_at: license.expires_at || null });
   }
 
   // 端末数チェック
@@ -105,5 +108,5 @@ module.exports = async function handler(req, res) {
     metadata: { email },
   });
 
-  return res.status(200).json({ ok: true, session_token: sessionToken, plan_slug: planSlug });
+  return res.status(200).json({ ok: true, session_token: sessionToken, plan_slug: planSlug, expires_at: license.expires_at || null });
 };

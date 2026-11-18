@@ -20,30 +20,42 @@ const normalizedLaunchPriceId =
     : launchPriceId;
 
 const plans = {
+  // 2026-11-18 価格改定: 個人ライセンスを ¥980 に一本化（旧: リリース記念 ¥1,980 先着100本 / 通常 ¥2,980）
+  // slug と環境変数名は既存のまま維持し、価格は Stripe 側の新規価格 + 環境変数の差し替えで切り替える。
   launch_individual: {
     slug: 'launch_individual',
-    name: 'リリース記念 個人ライセンス',
-    price_jpy: 1980,
+    name: '個人ライセンス',
+    price_jpy: 980,
     max_devices: 2,
     license_duration: null,           // null = 永続
     stripe_product_id: process.env.STRIPE_PRODUCT_LAUNCH_INDIVIDUAL || null,
     stripe_price_id:   normalizedLaunchPriceId,
     is_available: true,
-    campaign: {
-      max_count: 100,                 // 先着100本
-      end_date:  null,               // null = 日付制限なし
-    },
+    campaign: null,
   },
 
   standard_individual: {
     slug: 'standard_individual',
     name: '個人ライセンス',
-    price_jpy: 2980,
+    price_jpy: 980,
     max_devices: 2,
     license_duration: null,
     stripe_product_id: process.env.STRIPE_PRODUCT_STANDARD_INDIVIDUAL || null,
     stripe_price_id:   process.env.STRIPE_PRICE_STANDARD_INDIVIDUAL   || null,
     is_available: true,
+    campaign: null,
+  },
+
+  // 無料体験（Stripe を経由せず、scripts/issue-trial-license.js で発行する）
+  trial: {
+    slug: 'trial',
+    name: '無料体験ライセンス',
+    price_jpy: 0,
+    max_devices: 2,
+    license_duration: 30,             // 30日間
+    stripe_product_id: null,
+    stripe_price_id:   null,
+    is_available: false,              // 販売ロジックには乗せない
     campaign: null,
   },
 
