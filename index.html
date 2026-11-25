@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ServeEye — 4人制ソフトバレーボールのローテーション・得点・タイムアウトをスマホ1台で管理。買い切り1,980円。">
+  <meta name="description" content="ServeEye — 4人制ソフトバレーボールのローテーション・得点・タイムアウトをスマホ1台で管理。買い切り980円。">
   <meta name="theme-color" content="#0d1520">
   <title>ServeEye — 4人制ソフトバレー 得点管理アプリ</title>
 
   <!-- OGP（SNSシェア用） -->
   <meta property="og:title" content="ServeEye — 4人制ソフトバレー 得点管理アプリ">
-  <meta property="og:description" content="ローテーション・タイムアウト・試合履歴をスマホ1台で管理。買い切り1,980円。">
+  <meta property="og:description" content="ローテーション・タイムアウト・試合履歴をスマホ1台で管理。買い切り980円。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://serveeye.zless.jp/">
 
@@ -260,7 +260,7 @@
   <p>ローテーション管理からタイムアウトまで。<br>スコア記録のすべてをスマホ1台で。</p>
   <div class="hero-btns">
     <a class="btn-buy" href="#" data-checkout onclick="startCheckout(event)">
-      購入する — 1,980円（税込）
+      購入する — 980円（税込）
       <span class="btn-buy-sub">買い切り・永続利用・最大2端末</span>
     </a>
     <a class="btn-demo" href="/soft-volleyball-score.html">アプリを見る →</a>
@@ -394,7 +394,7 @@
 
   <div class="pricing-card">
     <div class="plan-name">個人ライセンス</div>
-    <div class="plan-price">1,980<span style="font-size:22px">円</span></div>
+    <div class="plan-price">980<span style="font-size:22px">円</span></div>
     <div class="plan-tax">税込・買い切り</div>
     <div id="campaign-remaining" style="display:none; color:var(--gold); font-size:13px; font-weight:700; margin-bottom:12px;"></div>
 
@@ -409,6 +409,7 @@
 
     <a class="btn-buy-card" href="#" data-checkout onclick="startCheckout(event)">購入する</a>
     <p class="plan-note">クレジットカード決済（Visa / Mastercard / American Express / JCB）<br>購入完了後、メールにて認証コードをお送りします。</p>
+    <p class="plan-note" style="margin-top:10px;">まずは試したい方へ：<strong>無料体験（30日間・全機能）</strong>をご用意しています。<br>InstagramのDMで「体験希望」とお送りください。認証コードをお渡しします。</p>
   </div>
 
   <div class="already-purchased">
@@ -486,7 +487,7 @@
         return;
       }
       if (res.status === 409) {
-        alert('このキャンペーンプランは終了しました。しばらくしてから再度お試しください。');
+        alert('現在購入を受け付けていません。しばらくしてから再度お試しください。');
       } else {
         alert('APIエラー HTTP ' + res.status + ': ' + (data.error || body));
       }
